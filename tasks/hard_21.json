@@ -1,4 +1,5 @@
 {
   "name": "Digital-to-Analog Converter (DAC)",
-  "description": "Converts digital codes to analog voltages using current steering or R-2R ladder networks implemented with MOSFETs."
+  "description": "Converts digital codes to analog voltages using current steering or R-2R ladder networks implemented with MOSFETs.",
+  "circuit_type": "DAC"
 }

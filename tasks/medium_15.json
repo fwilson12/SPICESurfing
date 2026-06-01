@@ -1,4 +1,5 @@
 {
   "name": "Phase Detector",
-  "description": "Compares the phase of two input signals, outputting a voltage proportional to the phase difference. Uses mixers or logic gates in CMOS."
+  "description": "Compares the phase of two input signals, outputting a voltage proportional to the phase difference. Uses mixers or logic gates in CMOS.",
+  "circuit_type": "PhaseDetector"
 }

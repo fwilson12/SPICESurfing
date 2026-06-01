@@ -1,4 +1,5 @@
 {
   "name": "4-bit Ripple Carry Multiplier",
-  "description": "Multiplies two 4-bit numbers using an array of adders and logic gates, realized with CMOS transistors."
+  "description": "Multiplies two 4-bit numbers using an array of adders and logic gates, realized with CMOS transistors.",
+  "circuit_type": "Adder"
 }

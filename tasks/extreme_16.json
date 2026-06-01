@@ -1,4 +1,5 @@
 {
   "name": "RF Power Amplifier",
-  "description": "Amplifies radio frequency signals with high output power, involving matching networks and linearization circuits."
+  "description": "Amplifies radio frequency signals with high output power, involving matching networks and linearization circuits.",
+  "circuit_type": "Amplifier"
 }

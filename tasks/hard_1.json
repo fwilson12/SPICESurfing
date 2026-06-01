@@ -1,4 +1,5 @@
 {
   "name": "8-Bit Shift Register",
-  "description": "An 8-bit shift register is a sequence of eight D flip-flops connected in series. Each flip-flop shifts a data bit to the next one on each clock pulse, moving data from the input to the output bit-by-bit. This arrangement allows for serial data transfer and storage, controlled by a common clock signal."
+  "description": "An 8-bit shift register is a sequence of eight D flip-flops connected in series. Each flip-flop shifts a data bit to the next one on each clock pulse, moving data from the input to the output bit-by-bit. This arrangement allows for serial data transfer and storage, controlled by a common clock signal.",
+  "circuit_type": "ShiftRegister"
 }

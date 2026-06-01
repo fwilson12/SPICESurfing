@@ -1,4 +1,5 @@
 {
   "name": "Schmitt Trigger with Hysteresis Control",
-  "description": "An improved Schmitt Trigger circuit with adjustable hysteresis achieved by modifying transistor ratios."
+  "description": "An improved Schmitt Trigger circuit with adjustable hysteresis achieved by modifying transistor ratios.",
+  "circuit_type": "Schmitt"
 }

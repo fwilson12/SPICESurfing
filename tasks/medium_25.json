@@ -1,4 +1,5 @@
 {
   "name": "Voltage-Controlled Current Source with Cascode",
-  "description": "An enhanced current source using a cascode configuration for improved output resistance and performance."
+  "description": "An enhanced current source using a cascode configuration for improved output resistance and performance.",
+  "circuit_type": "Amplifier"
 }

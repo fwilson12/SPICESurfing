@@ -1,4 +1,5 @@
 {
   "name": "CMOS XOR Gate",
-  "description": "Realized using eight transistors. Combines PMOS and NMOS networks to output high when inputs are different."
+  "description": "Realized using eight transistors. Combines PMOS and NMOS networks to output high when inputs are different.",
+  "circuit_type": "LogicGate"
 }

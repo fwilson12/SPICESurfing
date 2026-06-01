@@ -1,4 +1,5 @@
 {
   "name": "CMOS NOR Gate",
-  "description": "Features two PMOS transistors in series (connected to Vdd) and two NMOS transistors in parallel (connected to ground). Output is high only when both inputs are low."
+  "description": "Features two PMOS transistors in series (connected to Vdd) and two NMOS transistors in parallel (connected to ground). Output is high only when both inputs are low.",
+  "circuit_type": "LogicGate"
 }

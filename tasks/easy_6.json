@@ -1,4 +1,5 @@
 {
   "name": "CMOS Buffer",
-  "description": "Two inverters connected in series (total of four transistors). Strengthens signal integrity by restoring voltage levels."
+  "description": "Two inverters connected in series (total of four transistors). Strengthens signal integrity by restoring voltage levels.",
+  "circuit_type": "Inverter"
 }

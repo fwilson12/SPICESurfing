@@ -1,4 +1,5 @@
 {
   "name": "Instrumentation Amplifier",
-  "description": "Amplifies small differential signals with high common-mode rejection. Uses multiple op-amp stages built with MOSFETs."
+  "description": "Amplifies small differential signals with high common-mode rejection. Uses multiple op-amp stages built with MOSFETs.",
+  "circuit_type": "Amplifier"
 }

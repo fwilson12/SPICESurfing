@@ -1,4 +1,5 @@
 {
   "name": "Diode-Connected MOSFET",
-  "description": "A MOSFET with gate connected to drain, acting as a diode. Used in current mirrors and voltage reference circuits."
+  "description": "A MOSFET with gate connected to drain, acting as a diode. Used in current mirrors and voltage reference circuits.",
+  "circuit_type": "CurrentMirror"
 }

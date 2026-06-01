@@ -1,4 +1,5 @@
 {
   "name": "Flash Analog-to-Digital Converter (ADC)",
-  "description": "Uses multiple comparators (built with differential pairs) to convert an analog input into a digital output in parallel form."
+  "description": "Uses multiple comparators (built with differential pairs) to convert an analog input into a digital output in parallel form.",
+  "circuit_type": "ADC"
 }

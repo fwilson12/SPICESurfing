@@ -1,4 +1,5 @@
 {
   "name": "Operational Transconductance Amplifier (OTA)",
-  "description": "Outputs a current proportional to the differential input voltage. Realized using differential pairs and current mirrors."
+  "description": "Outputs a current proportional to the differential input voltage. Realized using differential pairs and current mirrors.",
+  "circuit_type": "Opamp"
 }

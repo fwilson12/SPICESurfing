@@ -1,4 +1,5 @@
 {
   "name": "Image Sensor Readout Circuit",
-  "description": "Interfaces with pixel arrays to read and process image data, using amplifiers and multiplexers."
+  "description": "Interfaces with pixel arrays to read and process image data, using amplifiers and multiplexers.",
+  "circuit_type": "Amplifier"
 }

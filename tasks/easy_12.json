@@ -1,4 +1,5 @@
 {
   "name": "Ring Oscillator (3-stage)",
-  "description": "An odd number of inverters (three CMOS inverters) connected in a loop. Generates an oscillating output signal due to the inversion delay."
+  "description": "An odd number of inverters (three CMOS inverters) connected in a loop. Generates an oscillating output signal due to the inversion delay.",
+  "circuit_type": "Oscillator"
 }

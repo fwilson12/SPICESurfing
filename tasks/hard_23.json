@@ -1,4 +1,5 @@
 {
   "name": "Temperature Sensor Circuit",
-  "description": "Outputs a voltage or current proportional to temperature. Uses MOSFETs with known temperature characteristics."
+  "description": "Outputs a voltage or current proportional to temperature. Uses MOSFETs with known temperature characteristics.",
+  "circuit_type": "Sensor"
 }

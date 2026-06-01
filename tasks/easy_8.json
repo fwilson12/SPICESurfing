@@ -1,4 +1,5 @@
 {
   "name": "CMOS XNOR Gate",
-  "description": "Similar to XOR gate but outputs high when inputs are the same. Uses eight transistors in CMOS logic."
+  "description": "Similar to XOR gate but outputs high when inputs are the same. Uses eight transistors in CMOS logic.",
+  "circuit_type": "LogicGate"
 }

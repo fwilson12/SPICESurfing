@@ -1,4 +1,5 @@
 {
   "name": "Switch Debouncer",
-  "description": "Implements a circuit with MOSFETs to eliminate bounce in mechanical switch signals."
+  "description": "Implements a circuit with MOSFETs to eliminate bounce in mechanical switch signals.",
+  "circuit_type": "Switch"
 }

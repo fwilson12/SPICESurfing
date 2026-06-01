@@ -1,4 +1,5 @@
 {
   "name": "Digital Filter Implementation",
-  "description": "Realizes filters like FIR or IIR using digital logic blocks and registers built from CMOS transistors."
+  "description": "Realizes filters like FIR or IIR using digital logic blocks and registers built from CMOS transistors.",
+  "circuit_type": "Filter"
 }

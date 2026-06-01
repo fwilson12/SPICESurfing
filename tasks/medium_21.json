@@ -1,4 +1,5 @@
 {
   "name": "CMOS Latch",
-  "description": "Stores data using cross-coupled inverters and transmission gates, allowing data retention even when the input is removed."
+  "description": "Stores data using cross-coupled inverters and transmission gates, allowing data retention even when the input is removed.",
+  "circuit_type": "Latch"
 }

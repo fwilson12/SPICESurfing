@@ -1,4 +1,5 @@
 {
   "name": "3-bit Ripple Carry Adder",
-  "description": "Chains multiple full adders (each implemented with CMOS logic) to add multi-bit binary numbers."
+  "description": "Chains multiple full adders (each implemented with CMOS logic) to add multi-bit binary numbers.",
+  "circuit_type": "Adder"
 }

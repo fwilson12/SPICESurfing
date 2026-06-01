@@ -1,4 +1,5 @@
 {
   "name": "Current Mirror",
-  "description": "Uses two matched NMOS or PMOS transistors. One transistor sets the reference current; the other copies it, providing consistent current in circuits."
+  "description": "Uses two matched NMOS or PMOS transistors. One transistor sets the reference current; the other copies it, providing consistent current in circuits.",
+  "circuit_type": "CurrentMirror"
 }

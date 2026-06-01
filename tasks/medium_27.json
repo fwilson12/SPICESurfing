@@ -1,4 +1,5 @@
 {
   "name": "Constant-Gm Bias Circuit",
-  "description": "Maintains constant transconductance over temperature and process variations using MOSFETs in feedback configurations."
+  "description": "Maintains constant transconductance over temperature and process variations using MOSFETs in feedback configurations.",
+  "circuit_type": "BiasCircuit"
 }

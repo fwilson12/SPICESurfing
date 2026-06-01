@@ -1,4 +1,5 @@
 {
   "name": "Current Mirror with Cascode",
-  "description": "Enhances a basic current mirror by adding cascode transistors for higher output resistance and better current matching."
+  "description": "Enhances a basic current mirror by adding cascode transistors for higher output resistance and better current matching.",
+  "circuit_type": "CurrentMirror"
 }

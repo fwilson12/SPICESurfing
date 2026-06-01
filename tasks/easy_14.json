@@ -1,4 +1,5 @@
 {
   "name": "Common Source Amplifier",
-  "description": "A basic amplifier using a single NMOS transistor with the source connected to ground and a resistor load connected to the drain."
+  "description": "A basic amplifier using a single NMOS transistor with the source connected to ground and a resistor load connected to the drain.",
+  "circuit_type": "Amplifier"
 }

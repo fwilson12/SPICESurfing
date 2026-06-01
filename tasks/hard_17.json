@@ -1,4 +1,5 @@
 {
   "name": "Switched-Capacitor Filter",
-  "description": "Uses MOSFET switches and capacitors to emulate resistors, allowing precise filter characteristics in integrated circuits."
+  "description": "Uses MOSFET switches and capacitors to emulate resistors, allowing precise filter characteristics in integrated circuits.",
+  "circuit_type": "Filter"
 }

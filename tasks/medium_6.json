@@ -1,4 +1,5 @@
 {
   "name": "Ring Oscillator (5-stage)",
-  "description": "Five CMOS inverters connected in a loop to generate a stable oscillation frequency."
+  "description": "Five CMOS inverters connected in a loop to generate a stable oscillation frequency.",
+  "circuit_type": "Oscillator"
 }

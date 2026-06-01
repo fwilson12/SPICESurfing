@@ -1,4 +1,5 @@
 {
   "name": "Voltage Follower (Source Follower)",
-  "description": "An NMOS transistor with gate as input and source as output, providing high input impedance and unity gain."
+  "description": "An NMOS transistor with gate as input and source as output, providing high input impedance and unity gain.",
+  "circuit_type": "Amplifier"
 }

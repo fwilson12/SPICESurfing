@@ -1,4 +1,5 @@
 {
   "name": "Charge Pump with Multiple Stages",
-  "description": "Generates higher voltages using several stages of capacitors and MOSFET switches controlled by clock signals."
+  "description": "Generates higher voltages using several stages of capacitors and MOSFET switches controlled by clock signals.",
+  "circuit_type": "ChargePump"
 }

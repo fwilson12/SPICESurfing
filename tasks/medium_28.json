@@ -1,4 +1,5 @@
 {
   "name": "Comparator with Hysteresis",
-  "description": "Uses a differential pair and positive feedback through MOSFETs to introduce hysteresis, preventing false triggering from noise."
+  "description": "Uses a differential pair and positive feedback through MOSFETs to introduce hysteresis, preventing false triggering from noise.",
+  "circuit_type": "Comparator"
 }

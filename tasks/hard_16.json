@@ -1,4 +1,5 @@
 {
   "name": "Transimpedance Amplifier",
-  "description": "Converts input current to output voltage. Commonly used with photodiodes, implemented with MOSFET-based op-amps."
+  "description": "Converts input current to output voltage. Commonly used with photodiodes, implemented with MOSFET-based op-amps.",
+  "circuit_type": "Amplifier"
 }

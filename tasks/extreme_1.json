@@ -1,4 +1,5 @@
 {
   "name": "16-bit Microprocessor Core (Simplified)",
-  "description": "A simplified processor including an ALU, registers, and control logic. Implemented with extensive CMOS logic circuits."
+  "description": "A simplified processor including an ALU, registers, and control logic. Implemented with extensive CMOS logic circuits.",
+  "circuit_type": "Processor"
 }

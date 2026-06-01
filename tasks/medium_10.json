@@ -1,4 +1,5 @@
 {
   "name": "Bandgap Reference",
-  "description": "Provides a stable voltage reference over temperature variations. Uses multiple transistors to combine voltages with opposite temperature coefficients."
+  "description": "Provides a stable voltage reference over temperature variations. Uses multiple transistors to combine voltages with opposite temperature coefficients.",
+  "circuit_type": "VoltageReference"
 }

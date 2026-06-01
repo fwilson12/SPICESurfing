@@ -1,4 +1,5 @@
 {
   "name": "Full Adder",
-  "description": "Adds three one-bit numbers (A, B, Cin). Implemented using CMOS logic gates (XOR, AND, OR), typically requiring about 20 transistors."
+  "description": "Adds three one-bit numbers (A, B, Cin). Implemented using CMOS logic gates (XOR, AND, OR), typically requiring about 20 transistors.",
+  "circuit_type": "Adder"
 }

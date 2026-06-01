@@ -1,4 +1,5 @@
 {
   "name": "Flash Memory Cell Array",
-  "description": "Stores data using floating-gate MOSFETs arranged in a grid, involving numerous transistors for storage and control."
+  "description": "Stores data using floating-gate MOSFETs arranged in a grid, involving numerous transistors for storage and control.",
+  "circuit_type": "Memory"
 }

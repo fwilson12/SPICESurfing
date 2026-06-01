@@ -1,4 +1,5 @@
 {
   "name": "Analog Multiplier",
-  "description": "Multiplies two analog signals using MOSFET transconductance properties, often implemented with differential pairs."
+  "description": "Multiplies two analog signals using MOSFET transconductance properties, often implemented with differential pairs.",
+  "circuit_type": "Mixer"
 }

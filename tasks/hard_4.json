@@ -1,4 +1,5 @@
 {
   "name": "Phase-Locked Loop (PLL) Circuit in MOSFET Technology",
-  "description": "This PLL circuit synchronizes an output oscillator with an external reference signal, achieving phase alignment and frequency control. It consists of a phase detector, a voltage-controlled oscillator (VCO), and a loop filter, all implemented using MOSFET technology for precise control and stability."
+  "description": "This PLL circuit synchronizes an output oscillator with an external reference signal, achieving phase alignment and frequency control. It consists of a phase detector, a voltage-controlled oscillator (VCO), and a loop filter, all implemented using MOSFET technology for precise control and stability.",
+  "circuit_type": "PLL"
 }

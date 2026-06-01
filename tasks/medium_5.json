@@ -1,4 +1,5 @@
 {
   "name": "Differential Amplifier with Current Mirror Load",
-  "description": "Combines a differential pair with a current mirror load to increase gain and improve balance in analog circuits."
+  "description": "Combines a differential pair with a current mirror load to increase gain and improve balance in analog circuits.",
+  "circuit_type": "Amplifier"
 }

@@ -1,4 +1,5 @@
 {
   "name": "LCD Driver Circuit",
-  "description": "Drives the pixels of an LCD display by controlling voltages across liquid crystals, using shift registers and level shifters."
+  "description": "Drives the pixels of an LCD display by controlling voltages across liquid crystals, using shift registers and level shifters.",
+  "circuit_type": "Driver"
 }

@@ -1,4 +1,5 @@
 {
   "name": "Adaptive Biasing Circuit",
-  "description": "Adjusts bias currents dynamically to optimize performance over process and temperature variations, using feedback networks."
+  "description": "Adjusts bias currents dynamically to optimize performance over process and temperature variations, using feedback networks.",
+  "circuit_type": "BiasCircuit"
 }

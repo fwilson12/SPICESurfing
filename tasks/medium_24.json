@@ -1,4 +1,5 @@
 {
   "name": "Delay Line",
-  "description": "A series of buffers or inverters (using CMOS logic) that delay the input signal by a specific time, useful in timing adjustments."
+  "description": "A series of buffers or inverters (using CMOS logic) that delay the input signal by a specific time, useful in timing adjustments.",
+  "circuit_type": "Filter"
 }

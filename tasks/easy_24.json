@@ -1,4 +1,5 @@
 {
   "name": "Voltage-Controlled Current Source",
-  "description": "A MOSFET provides a current proportional to the gate voltage, acting as a current source in circuits."
+  "description": "A MOSFET provides a current proportional to the gate voltage, acting as a current source in circuits.",
+  "circuit_type": "Amplifier"
 }

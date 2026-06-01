@@ -1,4 +1,5 @@
 {
   "name": "Multi-Stage Operational Amplifier with Compensation",
-  "description": "An op-amp with several gain stages and frequency compensation networks to ensure stability over various conditions."
+  "description": "An op-amp with several gain stages and frequency compensation networks to ensure stability over various conditions.",
+  "circuit_type": "Opamp"
 }

@@ -1,4 +1,5 @@
 {
   "name": "High-Resolution DAC",
-  "description": "Converts high-bit-depth digital signals to analog voltages. Uses complex current steering or segmented architectures."
+  "description": "Converts high-bit-depth digital signals to analog voltages. Uses complex current steering or segmented architectures.",
+  "circuit_type": "DAC"
 }

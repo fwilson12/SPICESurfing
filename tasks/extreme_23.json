@@ -1,4 +1,5 @@
 {
   "name": "Phased Array Antenna Beamforming Circuit",
-  "description": "Adjusts the phase and amplitude of signals across multiple antennas using complex analog and digital circuits."
+  "description": "Adjusts the phase and amplitude of signals across multiple antennas using complex analog and digital circuits.",
+  "circuit_type": "Amplifier"
 }

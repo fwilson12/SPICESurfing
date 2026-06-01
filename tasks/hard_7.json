@@ -1,4 +1,5 @@
 {
   "name": "Delta-Sigma Modulator",
-  "description": "Oversamples and noise-shapes an input signal for high-resolution ADCs, using integrators and comparators made with MOSFETs."
+  "description": "Oversamples and noise-shapes an input signal for high-resolution ADCs, using integrators and comparators made with MOSFETs.",
+  "circuit_type": "ADC"
 }

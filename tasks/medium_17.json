@@ -1,4 +1,5 @@
 {
   "name": "Sample and Hold Circuit with Buffered Output",
-  "description": "Adds a buffer stage to the basic sample and hold circuit using an additional MOSFET source follower for better load driving capability."
+  "description": "Adds a buffer stage to the basic sample and hold circuit using an additional MOSFET source follower for better load driving capability.",
+  "circuit_type": "SampleHold"
 }

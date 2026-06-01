@@ -1,4 +1,5 @@
 {
   "name": "Serializer/Deserializer (SerDes)",
-  "description": "Converts parallel data to serial form and vice versa for high-speed communication, involving complex timing and control circuits."
+  "description": "Converts parallel data to serial form and vice versa for high-speed communication, involving complex timing and control circuits.",
+  "circuit_type": "SerDes"
 }

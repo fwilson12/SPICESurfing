@@ -1,4 +1,5 @@
 {
   "name": "4-bit Synchronous Binary Counter in CMOS",
-  "description": "This 4-bit synchronous binary counter uses D-type flip-flops and CMOS-based logic gates to create a counter that progresses in a binary sequence. The design is synchronous, meaning all flip-flops receive a common clock signal, ensuring simultaneous updates and eliminating ripple delays. Each flip-flop represents one bit of the counter output, counting sequentially from 0 to 15."
+  "description": "This 4-bit synchronous binary counter uses D-type flip-flops and CMOS-based logic gates to create a counter that progresses in a binary sequence. The design is synchronous, meaning all flip-flops receive a common clock signal, ensuring simultaneous updates and eliminating ripple delays. Each flip-flop represents one bit of the counter output, counting sequentially from 0 to 15.",
+  "circuit_type": "Counter"
 }

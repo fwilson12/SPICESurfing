@@ -1,4 +1,5 @@
 {
   "name": "8-bit Johnson Counter",
-  "description": "A twisted ring counter using flip-flops to cycle through a sequence of states, implemented with CMOS transistors."
+  "description": "A twisted ring counter using flip-flops to cycle through a sequence of states, implemented with CMOS transistors.",
+  "circuit_type": "Counter"
 }

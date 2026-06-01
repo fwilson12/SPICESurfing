@@ -1,4 +1,5 @@
 {
   "name": "Voltage Regulator with Overcurrent Protection",
-  "description": "Includes sensing and control circuits to protect against overcurrent conditions, using additional MOSFETs for sensing."
+  "description": "Includes sensing and control circuits to protect against overcurrent conditions, using additional MOSFETs for sensing.",
+  "circuit_type": "VoltageRegulator"
 }

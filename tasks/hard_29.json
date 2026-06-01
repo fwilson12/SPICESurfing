@@ -1,4 +1,5 @@
 {
   "name": "PLL Frequency Synthesizer",
-  "description": "Generates multiple frequencies from a single reference frequency using a complex PLL architecture with frequency dividers."
+  "description": "Generates multiple frequencies from a single reference frequency using a complex PLL architecture with frequency dividers.",
+  "circuit_type": "PLL"
 }

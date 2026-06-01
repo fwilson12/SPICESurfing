@@ -1,4 +1,5 @@
 {
   "name": "Simple Voltage Reference",
-  "description": "Uses diode-connected MOSFETs to generate a reference voltage less affected by supply variations."
+  "description": "Uses diode-connected MOSFETs to generate a reference voltage less affected by supply variations.",
+  "circuit_type": "VoltageReference"
 }

@@ -1,4 +1,5 @@
 {
   "name": "Switched-Capacitor Sigma-Delta Modulator",
-  "description": "A modulator for high-resolution ADCs using switched-capacitor techniques, involving precise timing control with MOSFET switches."
+  "description": "A modulator for high-resolution ADCs using switched-capacitor techniques, involving precise timing control with MOSFET switches.",
+  "circuit_type": "ADC"
 }

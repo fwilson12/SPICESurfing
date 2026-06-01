@@ -1,4 +1,5 @@
 {
   "name": "Differential Pair",
-  "description": "Two NMOS transistors with common sources and differential inputs at the gates. Used in amplifier stages for comparing voltages."
+  "description": "Two NMOS transistors with common sources and differential inputs at the gates. Used in amplifier stages for comparing voltages.",
+  "circuit_type": "Amplifier"
 }

@@ -1,4 +1,5 @@
 {
   "name": "Logarithmic Amplifier",
-  "description": "Provides an output proportional to the logarithm of the input signal, using the exponential characteristics of MOSFETs."
+  "description": "Provides an output proportional to the logarithm of the input signal, using the exponential characteristics of MOSFETs.",
+  "circuit_type": "Amplifier"
 }
