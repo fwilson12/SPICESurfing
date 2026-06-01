@@ -3,7 +3,7 @@
 # def run(task, max_attempts)
 #
 #     # initialize comprehensive record of iterations 
-#     observations = []         
+#     iteration_log = []         
 
 #     for attempt in range(1, max_attempts + 1):
 #
@@ -12,11 +12,11 @@
 #         
 #
 #         code generation 
-#         script = generate_script(task, SEM notes, observations)
+#         script = generate_script(task, SEM notes, iteration_log)
 #
 #         optimizer
 #         record = validate_and_optimize(attempt, task, script)
-#         observations.append(record)
+#         iteration_log.append(record)
 #
 #         wise guy
 #         if new actionable evidence found in record:
