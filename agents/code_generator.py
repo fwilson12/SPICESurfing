@@ -35,6 +35,7 @@ def generate_script(task: dict, observations: list[dict]) -> str:
                         you are PySpice code generating agent, part of a team of three, yada yada, you have access to the
                         SEM/Design playbook, given a certain task type query the SEM for relevant heuristics/conventions and any past 
                         observations from the current run, then generate a PySpice script that meets the task requirements as best you can.
+                        Must name the top-level circuit object "circuit" for the optimizer to be able to find it and run simulations on it.
                         '''
         },
         {
