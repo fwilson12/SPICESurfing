@@ -31,7 +31,7 @@
 
 
 
-from schema import IterationRecord, CheckResult
+from schema import IterationRecord
 from optimizer import validate_and_optimize
 from wise_one import curate
 from code_generator import generate_script
@@ -63,7 +63,7 @@ def view_record_book(records: list[IterationRecord]) -> None:
 
 def main(task: dict, max_attempts: int) -> None:
     
-    record_book = circuit_time()
+    record_book = circuit_time(task, max_attempts=10)
 
     # view_record_book(record_book)
 
@@ -71,4 +71,4 @@ def main(task: dict, max_attempts: int) -> None:
 if __name__ == '__main__':
     main()
 
-    
+
