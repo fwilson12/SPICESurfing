@@ -3,7 +3,7 @@ import ollama
 import os
 import re
 
-def curate(iteration: IterationRecord, task: dict) -> None:
+def curate(iteration: IterationRecord, task: dict) -> str:
     ''' 
     Given a complete record of one optimization cycle, agent elects to append to the SEM based on generalizable patterns/heuristics that
     may be applicable to future iterations. Returns None, but may write to SEM directory
@@ -34,7 +34,7 @@ def curate(iteration: IterationRecord, task: dict) -> None:
     SEM_updates = {} # filepath (str): text to add (str)
 
 
-    # RE mess incoming | Want filepath substring in tag: "[WRITE TO: {filepath stringaling}]" and all subsequent text in block, plus additional block if wise one wants to add to general.md and a task_type md
+    # regex mess incoming | Want filepath substring in tag: "[WRITE TO: {filepath stringaling}]" and all subsequent text in block, plus additional block if wise one wants to add to general.md and a task_type md
     # Make wise one return [NO WRITE] if he doesn't feel the need to append to SEM, this is more for debugging  
     if "[NO WRITE]" in text:
         return
@@ -42,6 +42,9 @@ def curate(iteration: IterationRecord, task: dict) -> None:
     matches = re.findall(r'\[WRITE TO:\s*([^\]]+)\](.*?)(?=\[WRITE TO:|$)', text, re.DOTALL) # shoutout to claude dude what 
     SEM_updates = {filepath.strip(): content.strip() for filepath, content in matches}
     write_to_SEM(SEM_updates)
+    
+    return text # for debugging
+
 
 
 
@@ -49,7 +52,7 @@ def write_to_SEM(knowledge: dict) -> None:
     ''' appends content to files specified by the wise one agent, or initialiazes a task_file if it doesn't exist yet '''    
     
     for filepath, content in knowledge.items():
-        with open(os.path.join("SEM", filepath), "a") as f: # creates file in task_types subdir if it doesn't exist already
+        with open(os.path.join("../SEM", filepath), "a") as f: # creates file in task_types subdir if it doesn't exist already
             f.write(content + "\n\n")
 
     

@@ -22,7 +22,7 @@ def fetch_SEM(task_type: str) -> list[dict]:
     
     return res
 
-def generate_script(task: dict, observations: list[dict]) -> str:
+def generate_script(task: dict) -> str:
 
     SEM_notes = fetch_SEM(task["type"])
     general_rules = SEM_notes[0]["content"] if len(SEM_notes) > 0 else "No general rules found in SEM."
@@ -31,12 +31,12 @@ def generate_script(task: dict, observations: list[dict]) -> str:
     context = [
         {
             "role": "system", 
-            "content": '''
-                        you are PySpice code generating agent, part of a team of three, yada yada, you have access to the
-                        SEM/Design playbook, given a certain task type query the SEM for relevant heuristics/conventions and any past 
-                        observations from the current run, then generate a PySpice script that meets the task requirements as best you can.
-                        Must name the top-level circuit object "circuit" for the optimizer to be able to find it and run simulations on it.
-                        '''
+            "content": '''You are a PySpice code generating agent, working in a team of three. Your task is to use the user's task prompt
+                       and create a circuit with PySpice code that correctly represents and behaves like the described circuit. You are given access
+                       to relevant notes and information that are part of your evolving memory bank, which include general notes and additionally task-specific 
+                       notes related to the type of circuit you'll be designing, if they exist. Conform to the PySpice API and python syntax in your response. Generate
+                       the complete file, naming the main circuit 'circuit' in the file's namespace for simulation purposes in later design steps. Your response should contain
+                       nothing but a full python file.'''
         },
         {
             "role": "user", 
@@ -44,7 +44,7 @@ def generate_script(task: dict, observations: list[dict]) -> str:
         } ,
         {
             "role": "user", 
-            "content": f'Task-specific rules from the SEM (type {task["type"]}): {task_specific_rules}'
+            "content": f'Task-specific rules from the SEM (Circuit Type: {task["type"]}): {task_specific_rules}'
         },
         {
             "role": "user", 
@@ -59,6 +59,3 @@ def generate_script(task: dict, observations: list[dict]) -> str:
     except Exception as e:
         print("Error during code LLM query:", str(e))
         return ""
-
-
-
