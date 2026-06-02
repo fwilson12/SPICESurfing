@@ -31,13 +31,13 @@ def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
     context = [
         {
             "role": "system", 
-            "content": '''You are a PySpice code generating agent, working in a team of three. Your task is to use the user's task prompt
+            "content": """You are a PySpice code generating agent, working in a team of three. Your task is to use the user's task prompt
                        and create a circuit with PySpice code that correctly represents and behaves like the described circuit. You are given access to the previously generated script,
                        along with a repair plan curated by the optimization agent, who reviews your work. You are also given access
                        to relevant notes and information that are part of your evolving memory bank, which include general notes and additionally task-specific 
                        notes related to the type of circuit you'll be designing, if they exist. Conform to the PySpice API and python syntax in your response. Generate
                        the complete file, naming the main circuit 'circuit' in the file's namespace for simulation purposes in later design steps. Your response must contain
-                       nothing but complete full python file.'''
+                       nothing but complete full python file. Do not include '''python """
         },
         {
             "role": "user", 
@@ -62,7 +62,7 @@ def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
     ]
 
     try:
-        response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 16384})
+        response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 4096})
         return response["message"]["content"]
     
     except Exception as e:

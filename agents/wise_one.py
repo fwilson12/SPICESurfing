@@ -18,8 +18,9 @@ def curate(iteration: IterationRecord, task: dict) -> str:
                             your job is to evaluate the assigned task, the script that was generated, the list of checks and their results, and the repair plan drafted by
                             the optimization agent. You will then look for common design flaws, syntax/api errors, or other generalizable patterns, and append them to an
                             evolving memory bank, in a general syntax/PySpice convention/node structuring file, and/or a task-specific file, which should contain useful
-                            information for future iterations regarding the design of a specific circuit type. In your response, format each addition like so:
+                            information for future iterations regarding the design of a specific circuit type. In your response:
                             -   To write to the general syntax/structure file, precede your addition with the tag [WRITE TO: general.md]
+                                    # Format: `- [TAG] description` Tags: API, NODE, SYNTAX, SIM, CONV
                             -   To write to a task specific file, precede your addition with [WRITE TO: task_types\{task['circuit_type']}]. 
                             If you don't see any immidiately helpful information that is worth storing away, your response should contain only: [NO WRITE]'''
         },
@@ -29,7 +30,7 @@ def curate(iteration: IterationRecord, task: dict) -> str:
         {"role": "user", "content": f"Repair plan from Optimization agent {iteration.repair_plan}"}
     ]
 
-    response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 8192})
+    response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 4096})
     text = response["message"]["content"]
     SEM_updates = {} # filepath (str): text to add (str)
 

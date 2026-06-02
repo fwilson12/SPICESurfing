@@ -308,7 +308,7 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
         {"role": "user", "content": f"*Failing Script*:\n{script}"},
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
-    response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 8192})
+    response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 4096})
     return response["message"]["content"]
 
 
