@@ -3,4 +3,4 @@ numpy
 matplotlib
 ollama
 
-python 3.11
+

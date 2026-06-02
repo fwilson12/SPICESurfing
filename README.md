@@ -1,7 +1,7 @@
 # SPICESurfing
-**Setup** 
-I reccomend creating a new environment in anaconda to install the dependencies 
+## **Setup** 
 
+I reccomend creating a new environment in anaconda to install dependencies 
 ```
 conda create -n SPICE python=3.11
 conda activate SPICE
@@ -14,4 +14,6 @@ Additionally, PySpice requires a local installation of ngspice, which you can in
 pyspice-post-installation --install-ngspice-dll
 ```
 
+### **Selecting an LLM:**
+coming soon (issue #2)
 
