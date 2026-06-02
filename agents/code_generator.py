@@ -1,8 +1,8 @@
 import ollama
 import os
 
-BENCHMARK_FILE_PATH = "../tasks"
-SEM_FILE_PATH = "../SEM"
+BENCHMARK_FILE_PATH = "tasks"
+SEM_FILE_PATH = "SEM"
 
 def fetch_SEM(task_type: str) -> list[dict]:
     '''fetch general rules and task-specific heuristics if a task type file is found'''
@@ -24,7 +24,7 @@ def fetch_SEM(task_type: str) -> list[dict]:
 
 def generate_script(task: dict) -> str:
 
-    SEM_notes = fetch_SEM(task["type"])
+    SEM_notes = fetch_SEM(task["circuit_type"])
     general_rules = SEM_notes[0]["content"] if len(SEM_notes) > 0 else "No general rules found in SEM."
     task_specific_rules = SEM_notes[1]["content"] if len(SEM_notes) > 1 else "No task-specific rules in SEM currently. You got this!"
 
@@ -44,7 +44,7 @@ def generate_script(task: dict) -> str:
         } ,
         {
             "role": "user", 
-            "content": f'Task-specific rules from the SEM (Circuit Type: {task["type"]}): {task_specific_rules}'
+            "content": f'Task-specific rules from the SEM (Circuit Type: {task["circuit_type"]}): {task_specific_rules}'
         },
         {
             "role": "user", 

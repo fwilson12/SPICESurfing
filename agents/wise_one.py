@@ -23,7 +23,7 @@ def curate(iteration: IterationRecord, task: dict) -> str:
                             -   To write to a task specific file, precede your addition with [WRITE TO: task_types\(circuit_type)]. (circuit_type) will be provided to you in the next message.
                             If you don't see any immidiately helpful information that is worth storing away, your response should contain only: [NO WRITE]'''
         },
-        {"role": "user", "content": f"This is a circuit that {"passed" if iteration.accepted else "failed"} on iteration {iteration.attempt} for a {task["name"]} ({task["description"]}), which is of type {task["circuit_type"]}"},
+        {"role": "user", "content": f"This is a circuit that {'passed' if iteration.accepted else 'failed'} on iteration {iteration.attempt} for a {task['name']} ({task['description']}), which is of type {task['circuit_type']}"},
         {"role": "user", "content": f"PySpice Script: {iteration.script}"},
         {"role": "user", "content":f"Record from optimization stage: {str(optimization_results)}"}, 
         {"role": "user", "content": f"Repair plan from Optimization agent {iteration.repair_plan}"}
