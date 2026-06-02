@@ -22,7 +22,7 @@ def fetch_SEM(task_type: str) -> list[dict]:
     
     return res
 
-def generate_script(task: dict) -> str:
+def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
 
     SEM_notes = fetch_SEM(task["circuit_type"])
     general_rules = SEM_notes[0]["content"] if len(SEM_notes) > 0 else "No general rules found in SEM."
@@ -32,11 +32,12 @@ def generate_script(task: dict) -> str:
         {
             "role": "system", 
             "content": '''You are a PySpice code generating agent, working in a team of three. Your task is to use the user's task prompt
-                       and create a circuit with PySpice code that correctly represents and behaves like the described circuit. You are given access
+                       and create a circuit with PySpice code that correctly represents and behaves like the described circuit. You are given access to the previously generated script,
+                       along with a repair plan curated by the optimization agent, who reviews your work. You are also given access
                        to relevant notes and information that are part of your evolving memory bank, which include general notes and additionally task-specific 
                        notes related to the type of circuit you'll be designing, if they exist. Conform to the PySpice API and python syntax in your response. Generate
-                       the complete file, naming the main circuit 'circuit' in the file's namespace for simulation purposes in later design steps. Your response should contain
-                       nothing but a full python file.'''
+                       the complete file, naming the main circuit 'circuit' in the file's namespace for simulation purposes in later design steps. Your response must contain
+                       nothing but complete full python file.'''
         },
         {
             "role": "user", 
@@ -50,10 +51,18 @@ def generate_script(task: dict) -> str:
             "role": "user", 
             "content": f'Create a PySpice script for a {task["name"]}: {task["description"]}.' # Ex:  "Create a script for a CMOS Inverter (NOT Gate): "Uses one NMOS and one PMOS transistor connected in series between Vdd and ground. Input is connected to both gates; output is taken from the connection between the transistors. When the input is high, NMOS conducts, pulling output low; when input is low, PMOS conducts, pulling output high.","
         },
+        {
+            "role": "user",
+            "content": f'Previously generated script:\n{old_script}'
+        },
+        {
+            "role": "user",
+            "content": f'Repair plan from the optimization agent:\n{repair_plan}'
+        }
     ]
 
     try:
-        response = ollama.chat(model="qwen3.5:9b", messages=context)
+        response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 16384})
         return response["message"]["content"]
     
     except Exception as e:

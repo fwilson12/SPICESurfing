@@ -308,7 +308,7 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
         {"role": "user", "content": f"*Failing Script*:\n{script}"},
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
-    response = ollama.chat(model="qwen3.5:9b", messages=context)
+    response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 8192})
     return response["message"]["content"]
 
 
@@ -323,6 +323,7 @@ def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRec
     failure = record.first_failure()
     if failure is None:
         record.accepted = True
+        record.repair_plan = "No repairs needed. Script accepted."
     else:
         record.repair_plan = diagnose(task, script, failure)
 
