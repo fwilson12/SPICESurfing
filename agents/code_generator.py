@@ -1,20 +1,4 @@
-# instantiate  model 
-# create context list of dicts
-# add basic info (
-#                 "role": "system", 
-#                 "content": """you are PySpice code generating agent, part of a team of three, yada yada, you have acess to the
-#                               SEM/Design playbook, given a certain task type query the SEM for relevant heuristics/conventions"""
-#                 )
-# add task ("role": "user", "content": task(includes type)) to context
-# get response (tool call to SEM)
-# skim SEM file for notes on task
-# append notes to context (role: notes, content: notes.content)
-# get response again
-# send script to optimization agent
-
-
 import ollama
-import PySpice
 import os
 
 BENCHMARK_FILE_PATH = "../tasks"
@@ -42,8 +26,7 @@ def generate_script(task: dict, observations: list[dict]) -> str:
 
     SEM_notes = fetch_SEM(task["type"])
     general_rules = SEM_notes[0]["content"] if len(SEM_notes) > 0 else "No general rules found in SEM."
-    task_specific_rules = SEM_notes[1]["content"] if len(SEM_notes) > 1 else "No task-specific rules found in SEM currently."
-
+    task_specific_rules = SEM_notes[1]["content"] if len(SEM_notes) > 1 else "No task-specific rules in SEM currently. You got this!"
 
     context = [
         {
@@ -64,7 +47,17 @@ def generate_script(task: dict, observations: list[dict]) -> str:
         },
         {
             "role": "user", 
-            "content": f'Create a PySpice script for a {task["name"]}: {task["description"]}.'
+            "content": f'Create a PySpice script for a {task["name"]}: {task["description"]}.' # Ex:  "Create a script for a CMOS Inverter (NOT Gate): "Uses one NMOS and one PMOS transistor connected in series between Vdd and ground. Input is connected to both gates; output is taken from the connection between the transistors. When the input is high, NMOS conducts, pulling output low; when input is low, PMOS conducts, pulling output high.","
         },
     ]
+
+    try:
+        response = ollama.chat(model="qwen3.5:9b", messages=context)
+        return response["message"]["content"]
+    
+    except Exception as e:
+        print("Error during code LLM query:", str(e))
+        return ""
+
+
 
