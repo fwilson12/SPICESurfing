@@ -1,5 +1,5 @@
 '''
-schema.py — shared data structures for check results passed between optimizer and wise one
+Shared data structures for check results passed between optimizer and wise one
 
 Checks are sourced from AnalogAgent paper
 '''
