@@ -31,7 +31,7 @@ def circuit_time(task: dict, max_attempts: int) -> list[IterationRecord]:
 
         ''' Validation and Simulations '''
         print("\nValidating...\n")
-        IterRecord = validate_and_optimize(i, task, script)
+        IterRecord = validate_and_optimize(i + 1, task, script)
         current_repair_plan = IterRecord.repair_plan # for next iteration's code generation context
         record_book.append(IterRecord)
         # debug
@@ -41,7 +41,7 @@ def circuit_time(task: dict, max_attempts: int) -> list[IterationRecord]:
         ''' Self-Evolving Memory Additions '''
         print("\nCurating SEM additions...\n")
         SEM_addition = curate(IterRecord, task)
-        SEM_additions.append(f'SEM Addition for iteration {i}: {SEM_addition} \n\n')
+        SEM_additions.append(f'SEM Addition for iteration {i + 1}: {SEM_addition} \n\n')
         # debug
         print(f"New knowledge added to SEM: \n {SEM_addition}")
 
