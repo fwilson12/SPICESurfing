@@ -2,6 +2,18 @@ import ollama
 import numpy as np
 from schema import CheckResult, IterationRecord
 
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+from pathlib import Path
+
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(env_path)
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key= OPENAI_API_KEY)
+
+
+
 # Minimum transistor counts per circuit type for topology validation
 TOPOLOGY_REQUIREMENTS = {
     "Inverter":       {"Mosfet": 2},
@@ -308,8 +320,12 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
         {"role": "user", "content": f"*Failing Script*:\n{script}"},
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
-    response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 4096})
-    return response["message"]["content"]
+    
+    # query OpenAI
+    completion = client.chat.completions.create(model="gpt-4o", messages=context)
+    response = completion.choices[0].message.content
+
+    return response
 
 
 def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRecord:

@@ -3,6 +3,17 @@ import ollama
 import os
 import re
 
+from dotenv import load_dotenv
+from openai import OpenAI
+from pathlib import Path
+
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(env_path)
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key= OPENAI_API_KEY)
+
+
+
 def curate(iteration: IterationRecord, task: dict) -> str:
     ''' 
     Given a complete record of one optimization cycle, agent elects to append to the SEM based on generalizable patterns/heuristics that
@@ -30,8 +41,10 @@ def curate(iteration: IterationRecord, task: dict) -> str:
         {"role": "user", "content": f"Repair plan from Optimization agent {iteration.repair_plan}"}
     ]
 
-    response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 4096})
-    text = response["message"]["content"]
+    # query OpenAI
+    completion = client.chat.completions.create(model="gpt-4o", messages=context)
+    text = completion.choices[0].message.content
+    
     SEM_updates = {} # filepath (str): text to add (str)
 
 

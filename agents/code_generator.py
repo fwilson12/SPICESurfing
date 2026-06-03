@@ -2,6 +2,17 @@ import ollama
 import os
 import re
 
+from dotenv import load_dotenv
+from openai import OpenAI
+from pathlib import Path
+
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(env_path)
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key= OPENAI_API_KEY)
+
+
+
 
 BENCHMARK_FILE_PATH = "tasks"
 SEM_FILE_PATH = "SEM"
@@ -73,8 +84,10 @@ def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
     ]
 
     try:
-        response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 4096})
-        return response["message"]["content"]
+        # query OpenAI
+        completion = client.chat.completions.create(model="gpt-4o", messages=context)
+        text = completion.choices[0].message.content
+        return extract_script(text)
     
     except Exception as e:
         print("Error during code LLM query:", str(e))
