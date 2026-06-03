@@ -1,10 +1,12 @@
 import ollama
 import os
+import re
+
 
 BENCHMARK_FILE_PATH = "tasks"
 SEM_FILE_PATH = "SEM"
 
-def fetch_SEM(task_type: str) -> list[dict]:
+def fetch_SEM(task_type: str) -> list[dict]:    
     '''fetch general rules and task-specific heuristics if a task type file is found'''
     res = []
     
@@ -22,6 +24,15 @@ def fetch_SEM(task_type: str) -> list[dict]:
     
     return res
 
+
+def extract_script(script: str) -> str:
+    ''' gets rid of python script markdown in script string returned by LLMS w/ regex'''
+    match = re.search(r'```python\s*(.*?)```', script, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return script.strip()
+
+
 def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
 
     SEM_notes = fetch_SEM(task["circuit_type"])
@@ -37,7 +48,7 @@ def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
                        to relevant notes and information that are part of your evolving memory bank, which include general notes and additionally task-specific 
                        notes related to the type of circuit you'll be designing, if they exist. Conform to the PySpice API and python syntax in your response. Generate
                        the complete file, naming the main circuit 'circuit' in the file's namespace for simulation purposes in later design steps. Your response must contain
-                       nothing but complete full python file. Do not include '''python """
+                       nothing but complete full python file."""
         },
         {
             "role": "user", 
