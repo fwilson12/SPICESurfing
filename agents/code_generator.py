@@ -72,10 +72,6 @@ def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
         }
     ]
 
-    try:
-        response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 4096})
-        return response["message"]["content"]
+    response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 4096})
+    return extract_script(response["message"]["content"])
     
-    except Exception as e:
-        print("Error during code LLM query:", str(e))
-        return ""
