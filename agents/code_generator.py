@@ -14,7 +14,7 @@ def fetch_SEM(task_type: str) -> list[dict]:
         res.append(general)
     
     # if there are existing notes specific to this task type, get those too
-    task_specific = os.path.join(SEM_FILE_PATH, f"/{task_type}.md")
+    task_specific = os.path.join(SEM_FILE_PATH, "task_types", f"{task_type}.md")
     if os.path.exists(task_specific):
         with open(task_specific) as f:
             specific = {"role": "user", "content": f.read()}
