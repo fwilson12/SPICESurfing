@@ -59,7 +59,8 @@ def view_record_book(records: list[IterationRecord], task: dict) -> None:
         print("script:\n" + "\n".join(f"{line}" for line in record.script.splitlines())) # output is formatted like an actual python file
         print("\nchecks:")
         for check in record.checks:
-            status = "PASS" if check.passed else "FAIL"
+            # SKIP = stage not applicable to this circuit class; otherwise PASS/FAIL
+            status = "SKIP" if not check.applicable else ("PASS" if check.passed else "FAIL")
             print(f"    [{status}] {check.stage}")
             print(f"    message: {check.message}")
             if check.details:

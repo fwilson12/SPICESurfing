@@ -7,13 +7,13 @@ Checks are sourced from AnalogAgent paper
 from dataclasses import dataclass, field
 from typing import Optional
 
-# Stages in the optimizer check pipeline (in order)
+# Stages in the optimizer check pipeline (in order).
 CHECK_STAGES = [
-    "requirement",   # topology/node validation
-    "op_point",      # ngspice op + Vgs>Vth etc.
-    "dc_sweep",      # rail-stuck detection
-    "function",      # gain threshold check
-    "waveform",      # curve shape / monotonicity
+    "requirement",   # script compiles; circuit, ground, output node and devices present
+    "op_point",      # DC operating point converges (+ MOSFET saturation for analog classes)
+    "dc_sweep",      # output responds to its natural stimulus (DC sweep / transient / AC)
+    "function",      # task-specific functional assertion (gain / oscillation / filtering / bias)
+    "waveform",      # output shape sanity (swing, monotonicity, bounded & sustained)
 ]
 
 @dataclass
@@ -24,7 +24,9 @@ class CheckResult:
     stage: str  # one of CHECK_STAGES
     passed: bool
     message: str  # human/LLM-readable summary
-    details: str  # sim output or error trace 
+    details: str  # sim output or error trace
+    applicable: bool = True  # False when the stage was skipped as not meaningful for this circuit class
+                             # (recorded as passed=True so it never counts as a failure)
 
 @dataclass
 class IterationRecord:
