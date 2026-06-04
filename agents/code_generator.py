@@ -12,8 +12,6 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key= OPENAI_API_KEY)
 
 
-
-
 BENCHMARK_FILE_PATH = "tasks"
 SEM_FILE_PATH = "SEM"
 
@@ -83,9 +81,7 @@ def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
         }
     ]
 
-    try:
-        # query OpenAI
-        completion = client.chat.completions.create(model="gpt-4o", messages=context)
-        text = completion.choices[0].message.content
-        return extract_script(text)
-    
+
+    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
+    text = completion.choices[0].message.content
+    return extract_script(text)

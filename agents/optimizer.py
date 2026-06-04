@@ -15,9 +15,8 @@ import numpy as np
 from dataclasses import dataclass, field
 from schema import CheckResult, IterationRecord
 
-import os
-from openai import OpenAI
 from dotenv import load_dotenv
+from openai import OpenAI
 from pathlib import Path
 
 env_path = Path(__file__).resolve().parent.parent / '.env'
@@ -25,119 +24,188 @@ load_dotenv(env_path)
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key= OPENAI_API_KEY)
 
+# Generated scripts often end with their own matplotlib plotting. Force a headless
+# backend and neuter plt.show() BEFORE any pyplot import so an exec'd script can't
+# pop a blocking GUI window during validation. Guarded so a missing matplotlib is harmless.
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as _plt
+    _plt.show = lambda *a, **k: None
+except Exception:
+    pass
 
 
-# Minimum transistor counts per circuit type for topology validation
-TOPOLOGY_REQUIREMENTS = {
-    "Inverter":       {"Mosfet": 2},
-    "LogicGate":      {"Mosfet": 2},
-    "Amplifier":      {"Mosfet": 1},
-    "CurrentMirror":  {"Mosfet": 2},
-    "Opamp":          {"Mosfet": 4},
-    "Oscillator":     {"Mosfet": 1},
-    "Schmitt":        {"Mosfet": 2},
-    "Comparator":     {"Mosfet": 1},
-    "VCO":            {"Mosfet": 1},
-    "Latch":          {"Mosfet": 4},
-    "Switch":         {"Mosfet": 1},
-    "Mixer":          {"Mosfet": 4},
-    "Filter":         {},   # no MOSFET requirement
-    "ADC":            {"Mosfet": 2},
-    "DAC":            {"Mosfet": 2},
-    "PLL":            {"Mosfet": 4},
-    "VoltageReference":{"Mosfet": 1},
-    "VoltageRegulator":{"Mosfet": 1},
-    "BiasCircuit":    {"Mosfet": 2},
-    "ChargePump":     {"Mosfet": 2},
-    "SampleHold":     {"Mosfet": 1},
-    "Integrator":     {"Mosfet": 1},
-    "Adder":          {"Mosfet": 2},
+# --- Tunable thresholds ----------------------------------------------------
+NMOS_VTH = 0.5          # approx threshold voltage magnitude for saturation checks
+PMOS_VTH = 0.5          # magnitude — actual PMOS Vth is negative
+
+RAIL_STUCK_TOL = 0.02   # |std(Vout)| / Vdd below this ⇒ output is pinned to a rail
+SWING_FRACTION = 0.6    # transfer output must swing ≥ this fraction of Vdd
+MONOTONIC_FRACTION = 0.5  # fraction of the transfer curve that must share one slope sign
+
+OSC_STEP = 1e-9         # transient step for oscillator self-start check (s)
+OSC_END = 2e-6          # transient window — long enough to see several cycles (s)
+OSC_MIN_CROSSINGS = 4   # mean-crossings needed to call it sustained oscillation (~2 cycles)
+
+AC_START = 1            # AC sweep start frequency (Hz)
+AC_STOP = 1e9           # AC sweep stop frequency (Hz)
+AC_POINTS_PER_DECADE = 10
+FILTER_MIN_RATIO = 1.41  # max/min magnitude ratio (~3 dB) needed to call it "filtering"
+
+
+# --- Circuit validation profiles -------------------------------------------
+# The five checks are generic, but what counts as "working" depends on the circuit
+# family. A profile tells the suite how to exercise each design:
+#   mode               — which stimulus/analysis drives stages 3-5:
+#       "transfer"   : sweep a DC input, inspect the Vout(Vin) transfer curve
+#       "oscillator" : run a transient, look for sustained self-oscillation
+#       "filter"     : run an AC sweep, look for a frequency-shaping response
+#       "static"     : inspect the DC operating point only (mirrors / references)
+#       "structural" : too complex/digital for analog probes — structure + bias only
+#   expect_saturation  — enforce the MOSFET saturation checklist in op_point
+#                        (true for analog gain/bias stages, false for switching/digital)
+#   min_devices        — minimum element counts the topology must contain
+#   output_nodes       — preferred output node name(s) to look for
+#   gain_threshold     — transfer mode: minimum |dVout/dVin| to count as functional
+@dataclass
+class CircuitProfile:
+    mode: str = "structural"
+    expect_saturation: bool = False
+    min_devices: dict = field(default_factory=dict)
+    output_nodes: tuple = ("Vout",)
+    gain_threshold: float = 0.5
+
+
+# Per circuit_type profile. Device minimums carry over from the original topology table.
+# Anything not listed falls back to a "structural" default (compile + bias only).
+PROFILES = {
+    # --- DC transfer curve, with voltage gain (small-signal analog) ---
+    "Amplifier":        CircuitProfile("transfer", True,  {"Mosfet": 1}, gain_threshold=1.0),
+    "Opamp":            CircuitProfile("transfer", True,  {"Mosfet": 4}, gain_threshold=1.0),
+
+    # --- DC transfer curve, switching (one device on/off, not saturation-biased) ---
+    "Inverter":         CircuitProfile("transfer", False, {"Mosfet": 2}, gain_threshold=1.0),
+    "LogicGate":        CircuitProfile("transfer", False, {"Mosfet": 2}, gain_threshold=1.0),
+    "Comparator":       CircuitProfile("transfer", False, {"Mosfet": 1}, gain_threshold=1.0),
+    "Schmitt":          CircuitProfile("transfer", False, {"Mosfet": 2}, gain_threshold=1.0),
+    "Switch":           CircuitProfile("transfer", False, {"Mosfet": 1}, gain_threshold=0.3),
+
+    # --- Self-oscillating: verified with a transient, no DC input to sweep ---
+    "Oscillator":       CircuitProfile("oscillator", False, {"Mosfet": 1}),
+    "VCO":              CircuitProfile("oscillator", False, {"Mosfet": 1}),
+
+    # --- Frequency-shaping: verified with an AC sweep ---
+    "Filter":           CircuitProfile("filter", False, {}),
+
+    # --- Static DC bias targets (currents / reference levels), devices in saturation ---
+    "CurrentMirror":    CircuitProfile("static", True,  {"Mosfet": 2}),
+    "BiasCircuit":      CircuitProfile("static", True,  {"Mosfet": 2}),
+    "VoltageReference": CircuitProfile("static", True,  {"Mosfet": 1}),
+
+    # --- Too complex / digital for these analog probes: structure + op-point only ---
+    # (ADC, DAC, PLL, Counter, ShiftRegister, Latch, SampleHold, Mixer, PhaseDetector,
+    #  ChargePump, VoltageRegulator, Integrator, Adder, Sensor, Driver, Processor,
+    #  ALU, Memory, SerDes, ...) — stages 3-5 are skipped as not-applicable.
+    "Latch":            CircuitProfile("structural", False, {"Mosfet": 4}),
+    "Mixer":            CircuitProfile("structural", False, {"Mosfet": 4}),
+    "PLL":              CircuitProfile("structural", False, {"Mosfet": 4}),
+    "ADC":              CircuitProfile("structural", False, {"Mosfet": 2}),
+    "DAC":              CircuitProfile("structural", False, {"Mosfet": 2}),
+    "ChargePump":       CircuitProfile("structural", False, {"Mosfet": 2}),
+    "VoltageRegulator": CircuitProfile("structural", False, {"Mosfet": 1}),
+    "SampleHold":       CircuitProfile("structural", False, {"Mosfet": 1}),
+    "Integrator":       CircuitProfile("structural", False, {"Mosfet": 1}),
+    "Adder":            CircuitProfile("structural", False, {"Mosfet": 2}),
 }
 
-# Approximate threshold voltage magnitudes for saturation checks
-NMOS_VTH = 0.5
-PMOS_VTH = 0.5  # magnitude — actual Vth is negative for PMOS
+# Default profile for any circuit_type without an explicit entry above.
+DEFAULT_PROFILE = CircuitProfile(mode="structural", expect_saturation=False)
 
 
-def check_suite(script: str, task: dict) -> list[CheckResult]:
+def profile_for(task: dict) -> CircuitProfile:
+    ''' resolve the validation profile for a task's circuit_type, defaulting to structural '''
+    return PROFILES.get(task.get("circuit_type", ""), DEFAULT_PROFILE)
+
+
+# --- Shared helpers --------------------------------------------------------
+
+# Common output-node spellings, checked (case-insensitively) after a profile's own preference.
+OUTPUT_CANDIDATES = ("Vout", "Voutp", "Voutn", "Vo", "out", "output")
+
+
+def _result(stage: str, passed: bool, message: str, details: str = "", applicable: bool = True) -> CheckResult:
+    ''' small constructor wrapper to keep the stage bodies terse '''
+    return CheckResult(stage=stage, passed=passed, message=message, details=details, applicable=applicable)
+
+
+def _skip(stage: str, reason: str) -> CheckResult:
+    ''' record a stage as not-applicable for this circuit class (counts as a non-failure) '''
+    return _result(stage, passed=True, message=f"Skipped — {reason}", details="", applicable=False)
+
+
+def _classify_sources(circuit):
     '''
-    Run all five check stages in sequence. Returns early on first failure.
-    simspace carries circuit object and sim results between stages.
+    Identify the supply rail and the sweepable DC input among the circuit's voltage sources.
+    Supply = a source named like a rail (dd/cc/vdd/vcc) or the largest constant value.
+    Input  = a non-supply DC source, preferring one whose name mentions "in".
+    Returns (vdd, supply_src_or_None, input_src_or_None). The DC-sweep keyword is just
+    src.name (e.g. circuit.V('in', ...) → 'Vin'), so no input name is hardcoded.
     '''
-    results = []
-    simspace = {} # namespace for isolated script execution, used to fetch circuit/simulation results 
+    vdd = 5.0
+    supply = None
+    dc_sources = []
+    for el in circuit.elements:
+        if type(el).__name__ != "VoltageSource":
+            continue
+        try:
+            dc_sources.append((el, float(el.dc_value)))
+        except Exception:
+            continue
 
-    ''' Stage 1: basic requirement/topology checks '''
-    try:
-        exec(script, simspace)
-    
-    except SyntaxError as e:
-        results.append(CheckResult(
-            stage="requirement", passed=False,
-            message=f"SyntaxError: {e}",
-            details=str(e)
-        ))
-        return results
-    
-    except Exception as e:
-        results.append(CheckResult(
-            stage="requirement", passed=False,
-            message=f"Script execution error: {e}",
-            details=str(e)
-        ))
-        return results
+    named_rails = [(e, v) for e, v in dc_sources
+                   if any(k in str(e.name).lower() for k in ("dd", "cc", "vdd", "vcc"))]
+    if named_rails:
+        supply, vdd = max(named_rails, key=lambda p: p[1])
+        vdd = float(vdd)
+    elif dc_sources:
+        cand, val = max(dc_sources, key=lambda p: p[1])
+        if val > 1.0:
+            supply, vdd = cand, float(val)
 
-    # script must define a top-level variable named 'circuit'
-    circuit = simspace.get("circuit")
-    if circuit is None:
-        results.append(CheckResult(
-            stage="requirement", passed=False,
-            message="Script did not define a 'circuit' variable.",
-            details="Ensure the PySpice Circuit object is assigned to a variable named 'circuit'."
-        ))
-        return results
+    non_supply = [e for e, _ in dc_sources if e is not supply]
+    named_in = [e for e in non_supply
+                if "in" in str(e.name).lower() and "dd" not in str(e.name).lower()]
+    if named_in:
+        input_src = named_in[0]
+    elif len(non_supply) == 1:
+        input_src = non_supply[0]
+    else:
+        input_src = None
 
-    # check required nodes exist
-    node_names = [str(n) for n in circuit.nodes]
-    for required_node in ["Vout"]:
-        if required_node not in node_names:
-            results.append(CheckResult(
-                stage="requirement", passed=False,
-                message=f"Required node '{required_node}' not found in circuit.",
-                details=f"Nodes present: {node_names}"
-            ))
-            return results
+    return vdd, supply, input_src
 
-    # check minimum device counts for this circuit type
-    circuit_type = task.get("circuit_type", "")
-    reqs = TOPOLOGY_REQUIREMENTS.get(circuit_type, {})
-    element_types = [type(e).__name__ for e in circuit.elements]
-    for device, min_count in reqs.items():
-        count = element_types.count(device)
-        if count < min_count:
-            results.append(CheckResult(
-                stage="requirement", passed=False,
-                message=f"Topology error: expected at least {min_count} {device}(s), found {count}.",
-                details=f"All elements: {element_types}"
-            ))
-            return results
 
-    results.append(CheckResult(
-        stage="requirement", passed=True,
-        message="Netlist compiled, required nodes and devices present.",
-        details=f"Nodes: {node_names} | Elements: {element_types}"
-    ))
+def _find_output_node(circuit, profile: CircuitProfile):
+    ''' locate the output node by the profile's preferred name(s), then common variants '''
+    names = [str(n) for n in circuit.nodes]
+    lower = {n.lower(): n for n in names}
+    for cand in tuple(profile.output_nodes) + OUTPUT_CANDIDATES:
+        if cand.lower() in lower:
+            return lower[cand.lower()]
+    return None
 
-    ''' Stage 2: operating point checks for all MOSFETs in circuit '''
-    try:
-        simulator = circuit.simulator(temperature=25, nominal_temperature=25)
-        op = simulator.operating_point()
-        simspace["op"] = op
 
-        failures = []
-        for element in circuit.elements:
-            if type(element).__name__ != "Mosfet":
-                continue
+def _saturation_failures(circuit, op) -> list[str]:
+    '''
+    For each MOSFET, confirm it is biased in saturation at the operating point
+    (NMOS: Vgs>Vth and Vds>Vgs-Vth; PMOS: Vsg>|Vth| and Vsd>Vsg-|Vth|).
+    Returns a list of human-readable violations (empty ⇒ all transistors saturated).
+    '''
+    failures = []
+    for element in circuit.elements:
+        if type(element).__name__ != "Mosfet":
+            continue
 
         name = str(element.name)
         is_pmos = "pmos" in str(element.model).lower() or str(element.model).lower().startswith("p")
@@ -488,11 +556,9 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
     
-    # query OpenAI
-    completion = client.chat.completions.create(model="gpt-4o", messages=context)
-    response = completion.choices[0].message.content
-
-    return response
+    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
+    text = completion.choices[0].message.content
+    return (text)
 
 
 def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRecord:

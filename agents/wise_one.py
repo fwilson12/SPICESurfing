@@ -13,7 +13,6 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key= OPENAI_API_KEY)
 
 
-
 def curate(iteration: IterationRecord, task: dict) -> str:
     ''' 
     Given a complete record of one optimization cycle, agent elects to append to the SEM based on generalizable patterns/heuristics that
@@ -41,8 +40,7 @@ def curate(iteration: IterationRecord, task: dict) -> str:
         {"role": "user", "content": f"Repair plan from Optimization agent {iteration.repair_plan}"}
     ]
 
-    # query OpenAI
-    completion = client.chat.completions.create(model="gpt-4o", messages=context)
+    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
     text = completion.choices[0].message.content
     
     SEM_updates = {} # filepath (str): text to add (str)

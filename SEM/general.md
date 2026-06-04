@@ -1,8 +1,8 @@
 # General Rules
 
-# Curator: append atomic entries under the appropriate section.
+## Curator: append atomic entries under the appropriate section
 
-# Format: `- [TAG] description` Tags: API, NODE, SYNTAX, SIM, CONV
+## Format: `- [TAG] description` Tags: API, NODE, SYNTAX, SIM, CONV
 
 ## API
 
@@ -38,9 +38,8 @@
 - [CONV] PMOS width is typically 2x NMOS width to balance mobility differences.
 - [CONV] Minimum channel length for analog: `l=1e-6`; use longer L for better matching in mirrors.
 - [CONV] Required imports: `from PySpice.Spice.Netlist import Circuit`, `from PySpice.Unit import *`.
--   **Issue:** SyntaxError and parsing failures at startup (Line 1) often stem from invisible Byte Order Marks (BOMs `\ufeff`) in generated Python scripts when passed to execution environments or parsers.
-    -   *Fix:* Ensure all script generation tools save files without BOM using UTF-8 encoding (`encoding='utf-8-sig'` is bad for this; use standard `open(..., 'w')`). Always strip non-printable leading characters in automated code blocks before simulation execution to prevent immediate SyntaxError states.
-    -   *Observation:* Avoid importing unit conversion modules via wildcards (`from PySpice.Unit import *`) as the repair process indicated these are unsupported or deprecated in current netlist generators; use raw string literals for values (e.g., `'10k'`, `5V` compatible strings) instead. Do not append custom decorators like `@u_kOhm` to numeric constants passed directly into circuit component definition functions, as standard PySpice components expect valid SPICE-like parameter formats or explicit model calls without external decorator syntax which may break netlist conversion routines in this toolchain version.
+- **Issue:** SyntaxError and parsing failures at startup (Line 1) often stem from invisible Byte Order Marks (BOMs `\ufeff`) in generated Python scripts when passed to execution environments or parsers.
+- _Fix:_ Ensure all script generation tools save files without BOM using UTF-8 encoding (`encoding='utf-8-sig'` is bad for this; use standard `open(..., 'w')`). Always strip non-printable leading characters in automated code blocks before simulation execution to prevent immediate SyntaxError states.
+- _Observation:_ Avoid importing unit conversion modules via wildcards (`from PySpice.Unit import *`) as the repair process indicated these are unsupported or deprecated in current netlist generators; use raw string literals for values (e.g., `'10k'`, `5V` compatible strings) instead. Do not append custom decorators like `@u_kOhm` to numeric constants passed directly into circuit component definition functions, as standard PySpice components expect valid SPICE-like parameter formats or explicit model calls without external decorator syntax which may break netlist conversion routines in this toolchain version.
 
 : PySpice `Circuit` instance must be explicitly instantiated via `sp.Circuit()` immediately after import statements and assigned strictly to a variable named `'circuit'`. The component definition (e.g., `.add_mos`) requires this specific identifier to exist in the script's namespace; validation failures occur if any other name is used.
-
