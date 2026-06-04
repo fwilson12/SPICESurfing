@@ -89,6 +89,3 @@ def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
         text = completion.choices[0].message.content
         return extract_script(text)
     
-    except Exception as e:
-        print("Error during code LLM query:", str(e))
-        return ""

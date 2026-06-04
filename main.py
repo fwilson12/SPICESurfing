@@ -31,7 +31,7 @@ def circuit_time(task: dict, max_attempts: int) -> list[IterationRecord]:
 
         ''' Validation and Simulations '''
         print("\nValidating...\n")
-        IterRecord = validate_and_optimize(i, task, script)
+        IterRecord = validate_and_optimize(i + 1, task, script)
         current_repair_plan = IterRecord.repair_plan # for next iteration's code generation context
         record_book.append(IterRecord)
         # debug
@@ -41,7 +41,7 @@ def circuit_time(task: dict, max_attempts: int) -> list[IterationRecord]:
         ''' Self-Evolving Memory Additions '''
         print("\nCurating SEM additions...\n")
         SEM_addition = curate(IterRecord, task)
-        SEM_additions.append(f'SEM Addition for iteration {i}: {SEM_addition} \n\n')
+        SEM_additions.append(f'SEM Addition for iteration {i + 1}: {SEM_addition} \n\n')
         # debug
         print(f"New knowledge added to SEM: \n {SEM_addition}")
 
@@ -59,7 +59,8 @@ def view_record_book(records: list[IterationRecord], task: dict) -> None:
         print("script:\n" + "\n".join(f"{line}" for line in record.script.splitlines())) # output is formatted like an actual python file
         print("\nchecks:")
         for check in record.checks:
-            status = "PASS" if check.passed else "FAIL"
+            # SKIP = stage not applicable to this circuit class; otherwise PASS/FAIL
+            status = "SKIP" if not check.applicable else ("PASS" if check.passed else "FAIL")
             print(f"    [{status}] {check.stage}")
             print(f"    message: {check.message}")
             if check.details:

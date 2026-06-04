@@ -32,7 +32,7 @@ def curate(iteration: IterationRecord, task: dict) -> str:
                             information for future iterations regarding the design of a specific circuit type. In your response:
                             -   To write to the general syntax/structure file, precede your addition with the tag [WRITE TO: general.md]
                                     # Format: `- [TAG] description` Tags: API, NODE, SYNTAX, SIM, CONV
-                            -   To write to a task specific file, precede your addition with [WRITE TO: task_types\{task['circuit_type']}.md]. 
+                            -   To write to a task specific file, precede your addition with [WRITE TO: task_types\{task['circuit_type']}.md] Use same [TAG] format there. 
                             If you don't see any immidiately helpful information that is worth storing away, your response should contain only: [NO WRITE]'''
         },
         {"role": "user", "content": f"This is a circuit that {'passed' if iteration.accepted else 'failed'} on iteration {iteration.attempt} for a {task['name']} ({task['description']}), which is of type {task['circuit_type']}"},
