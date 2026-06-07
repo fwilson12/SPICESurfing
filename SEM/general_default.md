@@ -23,16 +23,6 @@
 ## SIM
 
 - [SIM] Do not call plt.show() or include any display/plot code — the validation pipeline runs headless
-
-## SIM (continued)
-
 - [SIM] Do not add simulation or operating point code at module level — the validation pipeline runs its own simulations; any inline sim calls will cause import errors or interfere with exec()
-- [SIM] Leave input source DC values at a realistic bias (e.g. 1.0–1.5V for NMOS gates) — leaving Vin at 0V puts input transistors in cutoff at the operating point
 
-## CONV
-
-- [CONV] Do not connect an NMOS drain back to its own source/tail node through any resistor — this forces Vds ≈ 0
-- [CONV] Do not use milliohm or microohm resistors to alias nodes — reuse the same node name string instead
-
-- [NODE] Do not leave gate nodes driven by independent fixed DC sources when the testbench will sweep a master input (Vin); tie gate node names to Vin or remove per-gate voltage sources and sweep the gate nodes directly so the sweep actually drives the transistor gates.
-
+## ADDED BY CURATOR

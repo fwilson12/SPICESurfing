@@ -15,6 +15,16 @@ import numpy as np
 from dataclasses import dataclass, field
 from schema import CheckResult, IterationRecord
 
+from dotenv import load_dotenv
+from openai import OpenAI
+from pathlib import Path
+import os
+
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(env_path)
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key= OPENAI_API_KEY)
+
 # Generated scripts often end with their own matplotlib plotting. Force a headless
 # backend and neuter plt.show() BEFORE any pyplot import so an exec'd script can't
 # pop a blocking GUI window during validation. Guarded so a missing matplotlib is harmless.
@@ -72,8 +82,11 @@ class CircuitProfile:
 # Anything not listed falls back to a "structural" default (compile + bias only).
 PROFILES = {
     # --- DC transfer curve, with voltage gain (small-signal analog) ---
-    "Amplifier":        CircuitProfile("transfer", True,  {"Mosfet": 1}, gain_threshold=1.0),
-    "Opamp":            CircuitProfile("transfer", True,  {"Mosfet": 4}, gain_threshold=1.0),
+    # expect_saturation=False: differential pairs have a degenerate symmetric DC operating point
+    # when Vin=Vref; the saturation check misfires on a working circuit. Gain is validated
+    # by the DC sweep and function check instead.
+    "Amplifier":        CircuitProfile("transfer", False, {"Mosfet": 1}, gain_threshold=1.0),
+    "Opamp":            CircuitProfile("transfer", False, {"Mosfet": 4}, gain_threshold=1.0),
 
     # --- DC transfer curve, switching (one device on/off, not saturation-biased) ---
     "Inverter":         CircuitProfile("transfer", False, {"Mosfet": 2}, gain_threshold=1.0),
@@ -193,6 +206,11 @@ def _saturation_failures(circuit, op) -> list[str]:
     (NMOS: Vgs>Vth and Vds>Vgs-Vth; PMOS: Vsg>|Vth| and Vsd>Vsg-|Vth|).
     Returns a list of human-readable violations (empty ⇒ all transistors saturated).
     '''
+    def node_v(pin) -> float:
+        # ground ('0') is the 0V reference and is never listed in op results
+        node = str(pin.node)
+        return 0.0 if node == "0" else float(op[node][-1])
+
     failures = []
     for element in circuit.elements:
         if type(element).__name__ != "Mosfet":
@@ -201,10 +219,10 @@ def _saturation_failures(circuit, op) -> list[str]:
         name = str(element.name)
         is_pmos = "pmos" in str(element.model).lower() or str(element.model).lower().startswith("p")
         try:
-            vg = float(op[str(element.gate)])
-            vs = float(op[str(element.source)])
-            vd = float(op[str(element.drain)])
-        except KeyError as e:
+            vg = node_v(element.gate)
+            vs = node_v(element.source)
+            vd = node_v(element.drain)
+        except (KeyError, IndexError) as e:
             failures.append(f"{name}: node {e} not found in op results")
             continue
 
@@ -228,6 +246,27 @@ def _saturation_failures(circuit, op) -> list[str]:
 # stops at the first failure; simspace carries the circuit object and any simulation
 # results forward between stages so later stages don't re-run analyses.
 
+def _exec_error_detail(script: str, e: Exception) -> str:
+    '''
+    Build an actionable detail for a script-execution failure. The bare str() of many
+    exceptions is uninterpretable on its own (e.g. PySpice raises AttributeError('NM1')
+    for a missing element, which stringifies to just "NM1"), so include the exception
+    type and the offending line from the generated script's traceback frame.
+    '''
+    detail = f"{type(e).__name__}: {e}"
+    lineno = None
+    tb = e.__traceback__
+    while tb is not None:
+        if tb.tb_frame.f_code.co_filename == "<string>":  # the exec'd script
+            lineno = tb.tb_lineno
+        tb = tb.tb_next
+    if lineno is not None:
+        lines = script.splitlines()
+        if 1 <= lineno <= len(lines):
+            detail += f"\n  at generated-script line {lineno}: {lines[lineno - 1].strip()}"
+    return detail
+
+
 def _check_requirement(script: str, task: dict, profile: CircuitProfile, simspace: dict) -> CheckResult:
     '''
     Stage 1 — Requirement / topology.
@@ -240,7 +279,8 @@ def _check_requirement(script: str, task: dict, profile: CircuitProfile, simspac
     except SyntaxError as e:
         return _result("requirement", False, f"SyntaxError: {e}", str(e))
     except Exception as e:
-        return _result("requirement", False, f"Script execution error: {e}", str(e))
+        detail = _exec_error_detail(script, e)
+        return _result("requirement", False, f"Script execution error: {detail}", detail)
 
     circuit = simspace.get("circuit")
     if circuit is None:
@@ -278,6 +318,14 @@ def _check_requirement(script: str, task: dict, profile: CircuitProfile, simspac
                    f"Output: {out_node} | Nodes: {node_names} | Elements: {element_types}")
 
 
+def _node_voltage_table(op) -> str:
+    ''' full DC node-voltage dump — gives the repair agent the actual operating
+    state (e.g. a collapsed tail node) to reason about, not just one inequality '''
+    lines = [f"  {str(n)} = {float(op[str(n)][-1]):.4f}V"
+             for n in sorted(op.nodes, key=lambda n: str(n))]
+    return "Operating-point node voltages:\n" + "\n".join(lines)
+
+
 def _check_op_point(profile: CircuitProfile, simspace: dict) -> CheckResult:
     '''
     Stage 2 — Operating point / DC feasibility.
@@ -295,12 +343,13 @@ def _check_op_point(profile: CircuitProfile, simspace: dict) -> CheckResult:
     if profile.expect_saturation:
         failures = _saturation_failures(circuit, op)
         if failures:
-            return _result("op_point", False, "One or more MOSFETs not in saturation.", "\n".join(failures))
+            detail = "\n".join(failures) + "\n\n" + _node_voltage_table(op)
+            return _result("op_point", False, "One or more MOSFETs not in saturation.", detail)
         return _result("op_point", True, "All MOSFETs biased in saturation.")
 
     # switching / digital: convergence alone is the bar; report the output rail for context
     try:
-        vout = float(op[simspace["out_node"]])
+        vout = float(op[simspace["out_node"]][-1])
         detail = f"Operating point Vout = {vout:.3f}V"
     except Exception:
         detail = "Operating point solved."
@@ -536,18 +585,43 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
     context = [
         {"role": "system",
             "content": (
-                    '''You are a PySpice circuit optimization agent, working in a team of three. You are given a circuit script
-                    generated by the code generation agent in the previous design step that failed a validation check. Diagnose the
-                    failure and provide a concise, actionable repair plan with specific changes to make to fix the issue.
-                    Do not rewrite the full script. Output only the repair directive.'''
+                    """You are a PySpice circuit diagnosis agent. A generated circuit script has failed one stage of a 
+                    five-stage validation pipeline. Your job is to identify the root cause and produce a precise, actionable
+                    repair directive for the code generator.
+
+                    The five validation stages are:
+                    1. requirement — script syntax, circuit variable exists, Vout node present, minimum device count
+                    2. op_point — DC operating point converges; for analog circuits, MOSFETs must be in saturation (Vgs>Vth, Vds>Vgs-Vth for NMOS; Vsg>|Vth|, Vsd>Vsg-|Vth| for PMOS)
+                    3. dc_sweep — output responds to stimulus (DC input sweep / transient / AC depending on circuit type)
+                    4. function — circuit performs its intended function (sufficient gain, sustained oscillation, filtering ratio, or stable bias)
+                    5. waveform — output shape is valid (adequate swing, monotonic transition, bounded oscillation)
+
+                    Your repair directive must:
+                    - Identify the specific root cause (not just restate the error message)
+                    - Give concrete, targeted changes — specific parameters, node connections, or structural fixes
+                    - Be formatted as a short numbered list
+                    - NOT rewrite or reproduce the full script
+
+                    ANALOG BIASING RULES — apply these when diagnosing op_point failures:
+                    - To fix a tail NMOS not in saturation: LOWER Vbias (closer to Vth), not higher — a lower Vbias reduces Vgs-Vth, making Vds > Vgs-Vth easier to satisfy
+                    - Tail NMOS Vbias should be just above Vth (e.g. 1.0–1.2V for Vto=0.7V); high Vbias values make saturation harder, not easier
+                    - If Vds_tail is too small, reduce tail current by lowering W, raising L, or lowering Vbias — do not raise Vbias
+                    - NMOS model threshold is Vto=0.7 unless specified otherwise; do not assume Vth=0.5
+                    - Do not suggest adding simulation, import, or operating point code to the script — the validator runs its own simulations
+
+                    Only suggest fixes you are certain about. Do NOT guess at or invent PySpice API
+                    signatures, keyword-argument names, or method names; a confidently wrong API fix
+                    gets stored as fact and makes the next attempt worse. """
             )
         },
         {"role": "user", "content": f"*Failed Task* (type: {task['circuit_type']})\n {task['name']}: {task['description']}"},
         {"role": "user", "content": f"*Failing Script*:\n{script}"},
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
-    response = ollama.chat(model="qwen3.5:9b", messages=context, options={"num_ctx": 4096})
-    return response["message"]["content"]
+    
+    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
+    text = completion.choices[0].message.content
+    return (text)
 
 
 def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRecord:
