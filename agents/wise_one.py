@@ -51,10 +51,14 @@ def curate(iteration: IterationRecord, task: dict) -> str:
                             - Specific to this script's particular parameter values
                             - Restatements of basic Python or obvious PySpice usage
                             - Uncertain inferences; if you are not confident it generalizes, use [NO WRITE]
+                            - Describe symptoms of an issue while omitting the root cause
 
                             WHEN IN DOUBT, use [NO WRITE]. A sparse SEM with high-quality entries is better than a bloated one.
                             Again: DO NOT add repeat entries that contain the same instructions or insights as existing SEM content,
                             even if they are worded differently. 
+                            
+                            Ask yourself: what single design principle, if known before, would have prevented the 
+                            failures in this run? Write that.
 
                             OUTPUT FORMAT:
                             - Each rule must be a single atomic fact on one line
@@ -72,7 +76,7 @@ def curate(iteration: IterationRecord, task: dict) -> str:
         {"role": "user", "content": f"[Existing {task['circuit_type']}.md]\n{existing_task_notes}"}
     ]
 
-    completion = client.chat.completions.create(model="gpt-4o-mini", messages=context)
+    completion = client.chat.completions.create(model="gpt-5-mini", messages=context)
     text = completion.choices[0].message.content
 
     SEM_updates = {} # filepath (str): text to add (str)

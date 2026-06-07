@@ -42,6 +42,7 @@ def circuit_time(task: dict, max_attempts: int) -> list[IterationRecord]:
             break
 
         print(f"\n  Result: REJECTED (failed at '{IterRecord.failure_stage()}')")
+        print(f"  Repair plan for next attempt:\n{current_repair_plan}\n")
 
         ''' Self-Evolving Memory Additions '''
         print("\n--- Curating SEM additions ---\n")

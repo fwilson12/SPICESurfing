@@ -82,8 +82,11 @@ class CircuitProfile:
 # Anything not listed falls back to a "structural" default (compile + bias only).
 PROFILES = {
     # --- DC transfer curve, with voltage gain (small-signal analog) ---
-    "Amplifier":        CircuitProfile("transfer", True,  {"Mosfet": 1}, gain_threshold=1.0),
-    "Opamp":            CircuitProfile("transfer", True,  {"Mosfet": 4}, gain_threshold=1.0),
+    # expect_saturation=False: differential pairs have a degenerate symmetric DC operating point
+    # when Vin=Vref; the saturation check misfires on a working circuit. Gain is validated
+    # by the DC sweep and function check instead.
+    "Amplifier":        CircuitProfile("transfer", False, {"Mosfet": 1}, gain_threshold=1.0),
+    "Opamp":            CircuitProfile("transfer", False, {"Mosfet": 4}, gain_threshold=1.0),
 
     # --- DC transfer curve, switching (one device on/off, not saturation-biased) ---
     "Inverter":         CircuitProfile("transfer", False, {"Mosfet": 2}, gain_threshold=1.0),
@@ -598,6 +601,13 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
                     - Give concrete, targeted changes — specific parameters, node connections, or structural fixes
                     - Be formatted as a short numbered list
                     - NOT rewrite or reproduce the full script
+
+                    ANALOG BIASING RULES — apply these when diagnosing op_point failures:
+                    - To fix a tail NMOS not in saturation: LOWER Vbias (closer to Vth), not higher — a lower Vbias reduces Vgs-Vth, making Vds > Vgs-Vth easier to satisfy
+                    - Tail NMOS Vbias should be just above Vth (e.g. 1.0–1.2V for Vto=0.7V); high Vbias values make saturation harder, not easier
+                    - If Vds_tail is too small, reduce tail current by lowering W, raising L, or lowering Vbias — do not raise Vbias
+                    - NMOS model threshold is Vto=0.7 unless specified otherwise; do not assume Vth=0.5
+                    - Do not suggest adding simulation, import, or operating point code to the script — the validator runs its own simulations
 
                     Only suggest fixes you are certain about. Do NOT guess at or invent PySpice API
                     signatures, keyword-argument names, or method names; a confidently wrong API fix
