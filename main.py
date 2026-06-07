@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 
 from schema import IterationRecord
-from dataclasses import fields
 
 from agents.optimizer import validate_and_optimize
 from agents.wise_one import curate
@@ -14,48 +13,56 @@ def circuit_time(task: dict, max_attempts: int) -> list[IterationRecord]:
 
     SEM_additions = []
     record_book = []
-    current_script = "" 
     current_repair_plan = ""
     for i in range(max_attempts):
         
-        print(f"--------------------\n Attempt {i+1} of {max_attempts} for task: {task['name']}\n--------------------")
-        
+        print(f"\n{'=' * 60}\n  ATTEMPT {i + 1} OF {max_attempts}  |  {task['name']}\n{'=' * 60}")
+
         ''' Script Generation '''
-        print("Generating PySpice code...\n")
-        script = generate_script(task, current_script, current_repair_plan)
+        print("\n--- Generating PySpice code ---\n")
+        script = generate_script(task, current_repair_plan)
         current_script = script # for next iteration's code generation context
         # debug
         print(script)
 
 
         ''' Validation and Simulations '''
-        print("\nValidating...\n")
+        print("\n--- Validating ---\n")
         IterRecord = validate_and_optimize(i + 1, task, script)
         current_repair_plan = IterRecord.repair_plan # for next iteration's code generation context
         record_book.append(IterRecord)
-        # debug
         for check in IterRecord.checks:
-            print([f"{stage.name}: {getattr(check, stage.name)}\n" for stage in fields(check)]) # essentially a k-v list comprehension with a custom DC instead of a dict
+            # SKIP = stage not applicable to this circuit class; otherwise PASS/FAIL
+            status = "SKIP" if not check.applicable else ("PASS" if check.passed else "FAIL")
+            print(f"  [{status}] {check.stage:<12} {check.message}")
+
+        if IterRecord.accepted:
+            print(f"\n--- ACCEPTED on attempt {i + 1} ---\n")
+            print(f"---FINAL SCRIPT ({task['name']})---:\n\n{script}\n")
+            break
+
+        print(f"\n  Result: REJECTED (failed at '{IterRecord.failure_stage()}')")
 
         ''' Self-Evolving Memory Additions '''
-        print("\nCurating SEM additions...\n")
+        print("\n--- Curating SEM additions ---\n")
         SEM_addition = curate(IterRecord, task)
         SEM_additions.append(f'SEM Addition for iteration {i + 1}: {SEM_addition} \n\n')
-        # debug
-        print(f"New knowledge added to SEM: \n {SEM_addition}")
+        print(f"New knowledge added to SEM:\n{SEM_addition}")
 
-    print(SEM_additions)
+    if record_book and not record_book[-1].accepted:
+        print(f"\n{'=' * 60}\n  NOT ACCEPTED after {len(record_book)} attempt(s)\n{'=' * 60}")
+
     return record_book
 
 
 
 def view_record_book(records: list[IterationRecord], task: dict) -> None:
    
-    print(f"-----------------------------------------------\n RECORD BOOK: {task['name'].upper()}\n-----------------------------------------------\n")
+    print(f"\n{'=' * 60}\n  RECORD BOOK: {task['name'].upper()}\n{'=' * 60}")
     for record in records:
-        print(f"Attempt #{record.attempt}  |  accepted: {record.accepted}  |  task: {record.task_type}")
-        
-        print("script:\n" + "\n".join(f"{line}" for line in record.script.splitlines())) # output is formatted like an actual python file
+        print(f"\n--- Attempt #{record.attempt}  |  accepted: {record.accepted}  |  task: {record.task_type} ---")
+
+        print("\nscript:\n" + "\n".join(f"{line}" for line in record.script.splitlines())) # output is formatted like an actual python file
         print("\nchecks:")
         for check in record.checks:
             # SKIP = stage not applicable to this circuit class; otherwise PASS/FAIL
