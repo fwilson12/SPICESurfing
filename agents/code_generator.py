@@ -12,8 +12,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key= OPENAI_API_KEY)
 
 
-BENCHMARK_FILE_PATH = "tasks"
-SEM_FILE_PATH = "SEM"
+SEM_FILE_PATH = Path(__file__).resolve().parent.parent / "SEM"
 
 def fetch_SEM(task_type: str) -> list[dict]:    
     '''fetch general rules and task-specific heuristics if a task type file is found'''
@@ -42,7 +41,7 @@ def extract_script(script: str) -> str:
     return script.strip()
 
 
-def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
+def generate_script(task: dict, repair_plan: str) -> str:
 
     SEM_notes = fetch_SEM(task["circuit_type"])
     general_rules = SEM_notes[0]["content"] if len(SEM_notes) > 0 else "No general rules found in SEM."
@@ -51,13 +50,27 @@ def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
     context = [
         {
             "role": "system", 
-            "content": """You are a PySpice code generating agent, working in a team of three. Your task is to use the user's task prompt
-                       and create a circuit with PySpice code that correctly represents and behaves like the described circuit. You are given access to the previously generated script,
-                       along with a repair plan curated by the optimization agent, who reviews your work. You are also given access
-                       to relevant notes and information that are part of your evolving memory bank, which include general notes and additionally task-specific 
-                       notes related to the type of circuit you'll be designing, if they exist. Conform to the PySpice API and python syntax in your response. Generate
-                       the complete file, naming the main circuit 'circuit' in the file's namespace for simulation purposes in later design steps. Your response must contain
-                       nothing but complete full python file."""
+            "content": """You are a PySpice circuit code generation agent. Your job is to produce a single, complete, 
+                        executable Python file that implements the described analog circuit using PySpice and ngspice.
+                        Your code is validated and tested by a separate optimization agent, which runs a series of checks and 
+                        simulations on your code and provides you with a repair plan to address any issues that arise. You will 
+                        use this feedback to iteratively improve your code until it passes all checks and is accepted by the 
+                        optimization agent on every attempt but your first. In your code:
+
+                        HARD REQUIREMENTS — the validation pipeline depends on these:
+                        - The top-level PySpice Circuit object MUST be assigned to a variable named exactly `circuit`
+                        - The output node MUST be named `Vout`
+                        - The primary DC input voltage source MUST be created as `circuit.V('in', 'Vin', circuit.gnd, ...)` so ngspice names it `vin` for sweeps
+                        - The supply rail MUST be named `Vdd` (circuit.V('dd', 'Vdd', circuit.gnd, ...))
+                        - `circuit.gnd` must be referenced so ngspice sees a ground node named `0`
+                        PYSPICE CONVENTIONS:
+                        - Use `circuit.M(name, drain, gate, source, bulk, model=...)` for MOSFETs — NOT circuit.MOSFET()
+                        - `lambda` is a Python keyword — use `lambda_=` in model definitions
+                        - Units: use `@u_V`, `@u_kOhm`, `@u_uF` etc. from `from PySpice.Unit import *`
+                        - PMOS bulk must tie to Vdd; NMOS bulk must tie to ground
+                        - Every node must have a DC path to ground — no floating nodes
+                        - Do not call plt.show() or include any display/plot code
+                        OUTPUT: raw Python only — no markdown, no code fences, no explanation."""
         },
         {
             "role": "user", 
@@ -70,16 +83,12 @@ def generate_script(task: dict, old_script: str, repair_plan: str) -> str:
         {
             "role": "user", 
             "content": f'Create a PySpice script for a {task["name"]}: {task["description"]}.' # Ex:  "Create a script for a CMOS Inverter (NOT Gate): "Uses one NMOS and one PMOS transistor connected in series between Vdd and ground. Input is connected to both gates; output is taken from the connection between the transistors. When the input is high, NMOS conducts, pulling output low; when input is low, PMOS conducts, pulling output high.","
-        },
-        {
-            "role": "user",
-            "content": f'Previously generated script:\n{old_script}'
-        },
-        {
-            "role": "user",
-            "content": f'Repair plan from the optimization agent:\n{repair_plan}'
         }
     ]
+
+    if repair_plan:
+        context.append({"role": "user", 
+                        "content": f"The validation agent identified this failure and repair directive — address it specifically:\n{repair_plan}"})
 
 
     completion = client.chat.completions.create(model="gpt-5.1", messages=context)
