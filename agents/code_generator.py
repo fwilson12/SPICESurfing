@@ -1,15 +1,8 @@
+from pathlib import Path
 import ollama
 import os
 import re
 
-from dotenv import load_dotenv
-from openai import OpenAI
-from pathlib import Path
-
-env_path = Path(__file__).resolve().parent.parent / '.env'
-load_dotenv(env_path)
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-client = OpenAI(api_key= OPENAI_API_KEY)
 
 
 SEM_FILE_PATH = Path(__file__).resolve().parent.parent / "SEM"
@@ -91,6 +84,8 @@ def generate_script(task: dict, repair_plan: str) -> str:
                         "content": f"The validation agent identified this failure and repair directive — address it specifically:\n{repair_plan}"})
 
 
-    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
-    text = completion.choices[0].message.content
-    return extract_script(text)
+    completion = ollama.chat(model="qwen3.5:9b", messages=context)
+    script = completion.message.content
+    return extract_script(script)
+
+    

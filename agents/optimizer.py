@@ -15,15 +15,6 @@ import numpy as np
 from dataclasses import dataclass, field
 from schema import CheckResult, IterationRecord
 
-from dotenv import load_dotenv
-from openai import OpenAI
-from pathlib import Path
-import os
-
-env_path = Path(__file__).resolve().parent.parent / '.env'
-load_dotenv(env_path)
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-client = OpenAI(api_key= OPENAI_API_KEY)
 
 # Generated scripts often end with their own matplotlib plotting. Force a headless
 # backend and neuter plt.show() BEFORE any pyplot import so an exec'd script can't
@@ -619,9 +610,9 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
     
-    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
-    text = completion.choices[0].message.content
-    return (text)
+    completion = ollama.chat(model="qwen3.5:9b", messages=context)
+    text = completion.message.content
+    return text
 
 
 def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRecord:
