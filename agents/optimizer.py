@@ -18,6 +18,7 @@ from schema import CheckResult, IterationRecord
 from dotenv import load_dotenv
 from openai import OpenAI
 from pathlib import Path
+import os
 
 env_path = Path(__file__).resolve().parent.parent / '.env'
 load_dotenv(env_path)
@@ -202,6 +203,11 @@ def _saturation_failures(circuit, op) -> list[str]:
     (NMOS: Vgs>Vth and Vds>Vgs-Vth; PMOS: Vsg>|Vth| and Vsd>Vsg-|Vth|).
     Returns a list of human-readable violations (empty ⇒ all transistors saturated).
     '''
+    def node_v(pin) -> float:
+        # ground ('0') is the 0V reference and is never listed in op results
+        node = str(pin.node)
+        return 0.0 if node == "0" else float(op[node][-1])
+
     failures = []
     for element in circuit.elements:
         if type(element).__name__ != "Mosfet":
@@ -210,10 +216,10 @@ def _saturation_failures(circuit, op) -> list[str]:
         name = str(element.name)
         is_pmos = "pmos" in str(element.model).lower() or str(element.model).lower().startswith("p")
         try:
-            vg = float(op[str(element.gate)])
-            vs = float(op[str(element.source)])
-            vd = float(op[str(element.drain)])
-        except KeyError as e:
+            vg = node_v(element.gate)
+            vs = node_v(element.source)
+            vd = node_v(element.drain)
+        except (KeyError, IndexError) as e:
             failures.append(f"{name}: node {e} not found in op results")
             continue
 
@@ -237,6 +243,27 @@ def _saturation_failures(circuit, op) -> list[str]:
 # stops at the first failure; simspace carries the circuit object and any simulation
 # results forward between stages so later stages don't re-run analyses.
 
+def _exec_error_detail(script: str, e: Exception) -> str:
+    '''
+    Build an actionable detail for a script-execution failure. The bare str() of many
+    exceptions is uninterpretable on its own (e.g. PySpice raises AttributeError('NM1')
+    for a missing element, which stringifies to just "NM1"), so include the exception
+    type and the offending line from the generated script's traceback frame.
+    '''
+    detail = f"{type(e).__name__}: {e}"
+    lineno = None
+    tb = e.__traceback__
+    while tb is not None:
+        if tb.tb_frame.f_code.co_filename == "<string>":  # the exec'd script
+            lineno = tb.tb_lineno
+        tb = tb.tb_next
+    if lineno is not None:
+        lines = script.splitlines()
+        if 1 <= lineno <= len(lines):
+            detail += f"\n  at generated-script line {lineno}: {lines[lineno - 1].strip()}"
+    return detail
+
+
 def _check_requirement(script: str, task: dict, profile: CircuitProfile, simspace: dict) -> CheckResult:
     '''
     Stage 1 — Requirement / topology.
@@ -249,7 +276,8 @@ def _check_requirement(script: str, task: dict, profile: CircuitProfile, simspac
     except SyntaxError as e:
         return _result("requirement", False, f"SyntaxError: {e}", str(e))
     except Exception as e:
-        return _result("requirement", False, f"Script execution error: {e}", str(e))
+        detail = _exec_error_detail(script, e)
+        return _result("requirement", False, f"Script execution error: {detail}", detail)
 
     circuit = simspace.get("circuit")
     if circuit is None:
@@ -287,6 +315,14 @@ def _check_requirement(script: str, task: dict, profile: CircuitProfile, simspac
                    f"Output: {out_node} | Nodes: {node_names} | Elements: {element_types}")
 
 
+def _node_voltage_table(op) -> str:
+    ''' full DC node-voltage dump — gives the repair agent the actual operating
+    state (e.g. a collapsed tail node) to reason about, not just one inequality '''
+    lines = [f"  {str(n)} = {float(op[str(n)][-1]):.4f}V"
+             for n in sorted(op.nodes, key=lambda n: str(n))]
+    return "Operating-point node voltages:\n" + "\n".join(lines)
+
+
 def _check_op_point(profile: CircuitProfile, simspace: dict) -> CheckResult:
     '''
     Stage 2 — Operating point / DC feasibility.
@@ -304,12 +340,13 @@ def _check_op_point(profile: CircuitProfile, simspace: dict) -> CheckResult:
     if profile.expect_saturation:
         failures = _saturation_failures(circuit, op)
         if failures:
-            return _result("op_point", False, "One or more MOSFETs not in saturation.", "\n".join(failures))
+            detail = "\n".join(failures) + "\n\n" + _node_voltage_table(op)
+            return _result("op_point", False, "One or more MOSFETs not in saturation.", detail)
         return _result("op_point", True, "All MOSFETs biased in saturation.")
 
     # switching / digital: convergence alone is the bar; report the output rail for context
     try:
-        vout = float(op[simspace["out_node"]])
+        vout = float(op[simspace["out_node"]][-1])
         detail = f"Operating point Vout = {vout:.3f}V"
     except Exception:
         detail = "Operating point solved."

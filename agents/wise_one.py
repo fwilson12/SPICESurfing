@@ -40,9 +40,9 @@ def curate(iteration: IterationRecord, task: dict) -> str:
         {"role": "user", "content": f"Repair plan from Optimization agent {iteration.repair_plan}"}
     ]
 
-    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
+    completion = client.chat.completions.create(model="gpt-4o-mini", messages=context)
     text = completion.choices[0].message.content
-    
+
     SEM_updates = {} # filepath (str): text to add (str)
 
 
@@ -64,7 +64,7 @@ def write_to_SEM(knowledge: dict) -> None:
     ''' appends content to files specified by the wise one agent, or initialiazes a task_file if it doesn't exist yet '''    
     
     for filepath, content in knowledge.items():
-        with open(os.path.join("SEM\\", filepath), "a") as f: # creates file in task_types subdir if it doesn't exist already
+        with open(os.path.join("SEM\\", filepath), "a", encoding="utf-8") as f: # creates file in task_types subdir if it doesn't exist already
             f.write(content + "\n\n")
 
     

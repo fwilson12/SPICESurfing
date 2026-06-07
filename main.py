@@ -12,7 +12,6 @@ from agents.code_generator import generate_script
 
 def circuit_time(task: dict, max_attempts: int) -> list[IterationRecord]:
 
-
     SEM_additions = []
     record_book = []
     current_script = "" 

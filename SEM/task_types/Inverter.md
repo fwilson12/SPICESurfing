@@ -3,3 +3,14 @@
     -   **Node Order:** When calling `circuit.connect()` for devices, the first terminal node often defaults to Drain/Source based on type; ensure arguments match `(Name, NodeA, NodeB)` logic where `output_node` is strictly between Drains and Supply nodes are external connections (not internal).
     -   **Topology Check:** For an Inverter, verify that no stray components (like the unconnected resistor found in `pmos_pole_node = circuit.R(...)`) exist unless intended for load testing. Standard CMOS inverters should only contain PMOS/NMOS pairs and supply/ground nodes to prevent simulation errors or floating input bias issues if inputs are driven incorrectly.
 
+- [SIM] In CMOS inverter validation workflows, add a dedicated DC input source on the input node (e.g. `circuit.V('Vin_dc', 'Vin', gnd, 0)`) specifically for DC sweeps, and keep the transient test source (pulse or step) separate. Do not rely solely on a `PulseVoltageSource` for DC sweep-based checks, as validators may not recognize it as a sweepable DC input.
+
+- [CONV] For a basic CMOS inverter, use one PMOS between `VDD` and `Vout` and one NMOS between `Vout` and ground, with both gates connected to the same input node. Explicitly tie PMOS bulk to `VDD` and NMOS bulk to ground to model realistic body connections.
+- [SIM] To validate inverter behavior, combine: (1) DC operating point to confirm static biasing, (2) DC sweep of `Vin` from 0 to `VDD` to ensure `Vout` transitions between rails and is not stuck, and (3) transient simulation with a pulse on `Vin` to check dynamic rail-to-rail switching and monotonicity of the transfer waveform.
+
+- [CONV] For a CMOS inverter, explicitly tie PMOS bulk to VDD and NMOS bulk to ground in the netlist: this both matches standard layout practice and avoids unintentional body effects in simulation.
+- [CONV] Use a dedicated DC source for logic-level sweeps (e.g., `V('in_dc', Vin, 0, 0)`) and a separate transient stimulus (e.g., `PulseVoltageSource`) added conditionally under `if __name__ == '__main__':` so test harnesses can do DC/AC checks without time-varying inputs interfering.
+- [SIM] In validation scripts, verify inverter behavior using both: (1) DC sweep of `Vin` from 0 to VDD to confirm full rail-to-rail transfer (Vout spanning ~0 to VDD and not rail-stuck), and (2) transient analysis with a pulse at `Vin` to confirm dynamic switching and output monotonicity.
+- [CONV] Include simple level-1 MOS models with clearly separated NMOS/PMOS parameters (e.g., `kp`, `vto`, `lambda_`) in inverter testbenches; this makes it easier to adjust switching threshold and gain for characterization without altering the netlist topology.
+- [NODE] Standard naming for inverter validation: supply as `VDD`, input as `Vin`, output as `Vout`, ground as `0` (`circuit.gnd`), to keep consistency across tests and automated checkers.
+
