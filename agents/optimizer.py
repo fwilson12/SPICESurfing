@@ -14,6 +14,7 @@ import ollama
 import numpy as np
 from dataclasses import dataclass, field
 from schema import CheckResult, IterationRecord
+from agents.code_generator import fetch_SEM, SEM_FILE_PATH
 
 
 # Generated scripts often end with their own matplotlib plotting. Force a headless
@@ -76,8 +77,8 @@ PROFILES = {
     # expect_saturation=False: differential pairs have a degenerate symmetric DC operating point
     # when Vin=Vref; the saturation check misfires on a working circuit. Gain is validated
     # by the DC sweep and function check instead.
-    "Amplifier":        CircuitProfile("transfer", False, {"Mosfet": 1}, gain_threshold=1.0),
-    "Opamp":            CircuitProfile("transfer", False, {"Mosfet": 4}, gain_threshold=1.0),
+    "Amplifier":        CircuitProfile("transfer", False, {"Mosfet": 1}, gain_threshold=30.0),
+    "Opamp":            CircuitProfile("transfer", False, {"Mosfet": 4}, gain_threshold=60.0),
 
     # --- DC transfer curve, switching (one device on/off, not saturation-biased) ---
     "Inverter":         CircuitProfile("transfer", False, {"Mosfet": 2}, gain_threshold=1.0),
@@ -627,6 +628,12 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
 
 
 def holistic_review(task: dict, script: str) -> str:
+    
+    SEM_notes = fetch_SEM(task["circuit_type"])
+    general_rules = SEM_notes[0]["content"] if len(SEM_notes) > 0 else "No general rules found in SEM."
+    task_specific_rules = SEM_notes[1]["content"] if len(SEM_notes) > 1 else "No task-specific rules in SEM currently. You got this!" # encourage your LLMs
+
+    
     context = [
         {"role": "system",
             "content": (
@@ -644,13 +651,29 @@ def holistic_review(task: dict, script: str) -> str:
                     FORMATTING: 
                     Your response MUST begin with either "[PASS]" or "[FAIL]", indicating whether you judge the script to be truly acceptable or 
                     if it needs further refinement, even if it technically passed the checks. If you determine a script to be failing, you will also 
-                    extensively desribe what specific changes must be made within the circuit, without drastic changes that make the circuit worse.
+                    extensively describe what specific changes must be made within the circuit, without drastic changes that make the circuit worse.
+
+                    Only suggest fixes you are certain about. Do NOT guess at or invent PySpice API
+                    signatures, keyword-argument names, or method names; a confidently wrong API fix
+                    gets stored as fact and makes the next attempt worse.
+
+                    You are also given access to the SEM (self-evolving memory), which the code generator also uses when writing PySpice scripts. 
+                    It contains relevant information about both general rules and about information that is specifically relevant to the current circuit
+                    type associated with the task. Use these to guide the next iteration.
                     
                     """
             )
         },
         {"role": "user", "content": f"*Circuit task:* (type: {task['circuit_type']})\n {task['name']}: {task['description']}"},
         {"role": "user", "content": f"*Passing Script*:\n{script}"},
+        {
+            "role": "user", 
+            "content": "General rules from the SEM : " + general_rules
+        } ,
+        {
+            "role": "user", 
+            "content": f'Task-specific rules from the SEM (Circuit Type: {task["circuit_type"]}): {task_specific_rules}'
+        },
     ]
     
     completion = ollama.chat(model="qwen3.5:9b", messages=context)
