@@ -3,8 +3,8 @@ Optimizer / validation agent.
 
 Runs the five-stage check suite over an LLM-generated PySpice script and, on the
 first failure, asks the LLM for a targeted repair plan. The five stages mirror the
-AnalogAgent paper's design-optimizer checks (requirement → operating point →
-sweep → function → waveform), but here they are *circuit-class aware*: a circuit
+AnalogAgent paper's design-optimizer checks (requirement -> operating point ->
+sweep -> function -> waveform), but here they are *circuit-class aware*: a circuit
 "profile" (see PROFILES) decides which stimulus drives the later stages and which
 assertions are meaningful, so the suite runs end-to-end for amplifiers, oscillators,
 filters, mirrors and digital/system blocks instead of assuming everything is an amplifier.
@@ -32,12 +32,12 @@ except Exception:
 NMOS_VTH = 0.5          # approx threshold voltage magnitude for saturation checks
 PMOS_VTH = 0.5          # magnitude — actual PMOS Vth is negative
 
-RAIL_STUCK_TOL = 0.02   # |std(Vout)| / Vdd below this ⇒ output is pinned to a rail
+RAIL_STUCK_TOL = 0.02   # |std(Vout)| / Vdd below this: output is pinned to a rail
 SWING_FRACTION = 0.6    # transfer output must swing ≥ this fraction of Vdd
 MONOTONIC_FRACTION = 0.5  # fraction of the transfer curve that must share one slope sign
 
 OSC_STEP = 1e-9         # transient step for oscillator self-start check (s)
-OSC_END = 2e-6          # transient window — long enough to see several cycles (s)
+OSC_END = 2e-6          # transient window; long enough to see several cycles (s)
 OSC_MIN_CROSSINGS = 4   # mean-crossings needed to call it sustained oscillation (~2 cycles)
 
 AC_START = 1            # AC sweep start frequency (Hz)
@@ -54,7 +54,7 @@ FILTER_MIN_RATIO = 1.41  # max/min magnitude ratio (~3 dB) needed to call it "fi
 #       "oscillator" : run a transient, look for sustained self-oscillation
 #       "filter"     : run an AC sweep, look for a frequency-shaping response
 #       "static"     : inspect the DC operating point only (mirrors / references)
-#       "structural" : too complex/digital for analog probes — structure + bias only
+#       "structural" : too complex/digital for analog probes; structure + bias only
 #   expect_saturation  — enforce the MOSFET saturation checklist in op_point
 #                        (true for analog gain/bias stages, false for switching/digital)
 #   min_devices        — minimum element counts the topology must contain
@@ -150,6 +150,7 @@ def _classify_sources(circuit):
     vdd = 5.0
     supply = None
     dc_sources = []
+    # add all dc sources in circuit to list as tuples: (source, value)
     for el in circuit.elements:
         if type(el).__name__ != "VoltageSource":
             continue
@@ -158,6 +159,8 @@ def _classify_sources(circuit):
         except Exception:
             continue
 
+
+    # first look for a named supply rail; if multiple, take the one with the highest voltage
     named_rails = [(e, v) for e, v in dc_sources
                    if any(k in str(e.name).lower() for k in ("dd", "cc", "vdd", "vcc"))]
     if named_rails:
@@ -207,6 +210,7 @@ def _saturation_failures(circuit, op) -> list[str]:
         if type(element).__name__ != "Mosfet":
             continue
 
+        # classify as NMOS vs PMOS by model name (convention) and check the relevant saturation inequalities
         name = str(element.name)
         is_pmos = "pmos" in str(element.model).lower() or str(element.model).lower().startswith("p")
         try:
@@ -382,7 +386,7 @@ def _check_dc_sweep(profile: CircuitProfile, simspace: dict) -> CheckResult:
             return _result("dc_sweep", False,
                            f"Vout is rail-stuck near {pinned} across the entire sweep.",
                            f"Vout range: [{vout.min():.3f}, {vout.max():.3f}]V, Vdd={vdd}V")
-        return _result("dc_sweep", True, "Vout responds to the input sweep — not rail-stuck.",
+        return _result("dc_sweep", True, "Vout responds to the input sweep; not rail-stuck.",
                        f"Vout range: [{vout.min():.3f}, {vout.max():.3f}]V")
 
     if profile.mode == "oscillator":
@@ -541,12 +545,16 @@ def _check_waveform(profile: CircuitProfile, simspace: dict) -> CheckResult:
     return _skip("waveform", f"no waveform check for '{profile.mode}' class")
 
 
-def check_suite(script: str, task: dict) -> list[CheckResult]:
+def check_suite(script: str, task: dict) -> tuple[list[CheckResult], str]:
     '''
     Run the five check stages in order, short-circuiting on the first failure.
     The circuit profile (resolved from task['circuit_type']) decides which stimulus
     drives stages 3-5 and which assertions apply; simspace carries the circuit object
-    and simulation results between stages.
+    and simulation results between stages. 
+
+    Returns a tuple containing:
+        - A list of CheckResults, one per stage (passed=True for skipped stages, which are not failures)
+        - The netlist string if the requirement stage passed and defined a circuit.
     '''
     profile = profile_for(task)
     simspace = {}  # isolated namespace for the exec'd script + sim artifacts shared across stages
@@ -566,7 +574,10 @@ def check_suite(script: str, task: dict) -> list[CheckResult]:
         if not result.passed:   # skipped stages are passed=True, so they never short-circuit
             break
 
-    return results
+    # get pure netlist from PySpice script, fed back into optimization agent instead of the full script for compactness 
+    netlist = str(simspace.get("circuit", "n/a"))
+
+    return results, netlist
 
 
 def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
@@ -610,24 +621,65 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
     
-    completion = ollama.chat(model="qwen3.5:9b", messages=context)
-    text = completion.message.content
-    return text
+    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
+    text = completion.choices[0].message.content
+    return (text)
 
+
+def holistic_review(task: dict, script: str) -> str:
+    context = [
+        {"role": "system",
+            "content": (
+                    """You are a PySpice circuit diagnosis agent. A generated circuit script has passed each stage of a 
+                    five-stage validation pipeline, which is described below. Your job is to give the script one final pass
+                    and ensure that it is truly acceptable for submission, not just technically passing the checks. 
+
+                    The five validation stages are:
+                    1. requirement — script syntax, circuit variable exists, Vout node present, minimum device count
+                    2. op_point — DC operating point converges; for analog circuits, MOSFETs must be in saturation (Vgs>Vth, Vds>Vgs-Vth for NMOS; Vsg>|Vth|, Vsd>Vsg-|Vth| for PMOS)
+                    3. dc_sweep — output responds to stimulus (DC input sweep / transient / AC depending on circuit type)
+                    4. function — circuit performs its intended function (sufficient gain, sustained oscillation, filtering ratio, or stable bias)
+                    5. waveform — output shape is valid (adequate swing, monotonic transition, bounded oscillation)
+
+                    FORMATTING: 
+                    Your response MUST begin with either "[PASS]" or "[FAIL]", indicating whether you judge the script to be truly acceptable or 
+                    if it needs further refinement, even if it technically passed the checks. If you determine a script to be failing, you will also 
+                    extensively desribe what specific changes must be made within the circuit, without drastic changes that make the circuit worse.
+                    
+                    """
+            )
+        },
+        {"role": "user", "content": f"*Circuit task:* (type: {task['circuit_type']})\n {task['name']}: {task['description']}"},
+        {"role": "user", "content": f"*Passing Script*:\n{script}"},
+    ]
+    
+    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
+    text = completion.choices[0].message.content
+    return (text)
 
 def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRecord:
     '''
     Run the check suite. If a check fails, call the LLM for a repair plan; returns an IterationRecord for main and wise one.
+    Agent also performs a holistic review of the script to determine whether a script that passes the checks is
+    actually acceptable or needs further refinement, and includes that assessment in the record.
     '''
     record = IterationRecord(attempt = attempt, task_type = task["circuit_type"], script = script, checks = [])
 
-    record.checks = check_suite(script, task)
+    record.checks, record.netlist = check_suite(script, task)
 
     failure = record.first_failure()
     if failure is None:
-        record.accepted = True
-        record.repair_plan = "No repairs needed. Script accepted."
+        # 5-stage checks passed, subjective LLM review determines final acceptance 
+        subjective_review = holistic_review(task, script)
+        record.accepted = subjective_review.startswith("[PASS]")
+        if record.accepted:   
+            record.repair_plan = "No repairs needed. Script accepted."
+        else:
+            record.repair_plan = subjective_review
+   
     else:
+        # at least one quantitative check failed, LLM diagnosis determines repairs to fix the failure and pass the checks
         record.repair_plan = diagnose(task, script, failure)
+
 
     return record
