@@ -37,6 +37,7 @@ class IterationRecord:
     task_type: str # circuit type string, used to route SEM task_types lookup
     script: str   # the PySpice script that was evaluated
     checks: list[CheckResult] # a list of each of the five CheckResults from optimizer pipeline 
+    netlist: str = "n/a" # the netlist extracted from the script after requirement stage
     repair_plan: Optional[str] = None # concise diagnosis and proposed next steps for repair, sourced from optimizer diagnosis agent, if none provided default to None
     accepted: bool = False 
 

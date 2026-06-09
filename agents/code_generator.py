@@ -41,7 +41,7 @@ def extract_script(script: str) -> str:
     return script.strip()
 
 
-def generate_script(task: dict, repair_plan: str) -> str:
+def generate_script(task: dict, repair_plan: str, netlist: str = "no previous netlist") -> str:
 
     SEM_notes = fetch_SEM(task["circuit_type"])
     general_rules = SEM_notes[0]["content"] if len(SEM_notes) > 0 else "No general rules found in SEM."
@@ -55,7 +55,10 @@ def generate_script(task: dict, repair_plan: str) -> str:
                         Your code is validated and tested by a separate optimization agent, which runs a series of checks and 
                         simulations on your code and provides you with a repair plan to address any issues that arise. You will 
                         use this feedback to iteratively improve your code until it passes all checks and is accepted by the 
-                        optimization agent on every attempt but your first. In your code:
+                        optimization agent on every attempt but your first. You are also given the netlist form of the script from 
+                        your previous attempt for reference (unless this is your first attempt).
+                        
+                        In your code:
 
                         HARD REQUIREMENTS — the validation pipeline depends on these:
                         - The top-level PySpice Circuit object MUST be assigned to a variable named exactly `circuit`
