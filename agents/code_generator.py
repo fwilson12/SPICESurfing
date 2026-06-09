@@ -79,6 +79,10 @@ def generate_script(task: dict, repair_plan: str, netlist: str = "no previous ne
         {
             "role": "user", 
             "content": f'Create a PySpice script for a {task["name"]}: {task["description"]}.' # Ex:  "Create a script for a CMOS Inverter (NOT Gate): "Uses one NMOS and one PMOS transistor connected in series between Vdd and ground. Input is connected to both gates; output is taken from the connection between the transistors. When the input is high, NMOS conducts, pulling output low; when input is low, PMOS conducts, pulling output high.","
+        },
+        {
+            "role": "user", 
+            "content": f'Here is the netlist from your previous attempt (for reference, not necessarily correct): {netlist}'
         }
     ]
 

@@ -621,9 +621,9 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
     
-    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
-    text = completion.choices[0].message.content
-    return (text)
+    completion = ollama.chat(model="qwen3.5:9b", messages=context)
+    text = completion.message.content
+    return text
 
 
 def holistic_review(task: dict, script: str) -> str:
@@ -653,9 +653,9 @@ def holistic_review(task: dict, script: str) -> str:
         {"role": "user", "content": f"*Passing Script*:\n{script}"},
     ]
     
-    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
-    text = completion.choices[0].message.content
-    return (text)
+    completion = ollama.chat(model="qwen3.5:9b", messages=context)
+    text = completion.message.content
+    return text
 
 def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRecord:
     '''
