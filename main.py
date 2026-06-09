@@ -38,20 +38,23 @@ def circuit_time(task: dict, max_attempts: int) -> list[IterationRecord]:
             status = "SKIP" if not check.applicable else ("PASS" if check.passed else "FAIL")
             print(f"  [{status}] {check.stage:<12} {check.message}")
 
-        # script passed, exit early
-        if IterRecord.accepted:
-            print(f"\n--- ACCEPTED on attempt {i + 1} ---\n")
-            print(f"---FINAL SCRIPT ({task['name']})---:\n\n{script}\n")
-            break
-
-        print(f"\n  Result: REJECTED (failed at '{IterRecord.failure_stage()}')")
-        print(f"  Repair plan for next attempt:\n{current_repair_plan}\n")
-
         ''' Self-Evolving Memory Additions '''
         print("\n--- Curating SEM additions ---\n")
         SEM_addition = curate(IterRecord, task)
         SEM_additions.append(f'SEM Addition for iteration {i + 1}: {SEM_addition} \n\n')
         print(f"New knowledge added to SEM:\n{SEM_addition}")
+
+
+        # script passed
+        if IterRecord.accepted:
+            print(f"\n--- ACCEPTED on attempt {i + 1} ---\n")
+            print(f"---FINAL SCRIPT ({task['name']})---:\n\n{script}\n")
+            break
+            
+
+        else:
+            print(f"\n  Result: REJECTED (failed at '{IterRecord.failure_stage()}')")
+            print(f"  Repair plan for next attempt:\n{current_repair_plan}\n")
 
     if record_book and not record_book[-1].accepted:
         print(f"\n{'-' * 60}\n  NOT ACCEPTED after {len(record_book)} attempt(s)\n{'-' * 60}")

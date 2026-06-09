@@ -42,6 +42,7 @@ def curate(iteration: IterationRecord, task: dict) -> str:
                             1. A PySpice API or syntax error that would affect any script of this type, not just this one
                             2. A circuit convention or topology requirement that is non-obvious and violated here
                             3. A failure pattern that is likely to recur on similar tasks
+                            4. A successful design pattern that is likely to be applicable in future iterations
 
                             DO NOT write rules that are:
                             - Already present in the existing SEM content provided to you by the user
