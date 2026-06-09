@@ -36,3 +36,5 @@
 
 - [NODE] Do not leave gate nodes driven by independent fixed DC sources when the testbench will sweep a master input (Vin); tie gate node names to Vin or remove per-gate voltage sources and sweep the gate nodes directly so the sweep actually drives the transistor gates.
 
+- [CONV] Do not add high-value "leak" resistors from CMOS outputs or internal inverter nodes to ground or Vdd; complementary transistors define static states and such resistors create asymmetric loading and unwanted bias currents that distort logic behavior.
+

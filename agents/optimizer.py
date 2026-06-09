@@ -680,15 +680,15 @@ def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRec
     if failure is None:
         # 5-stage checks passed, subjective LLM review determines final acceptance 
         subjective_review = holistic_review(task, script)
-        record.accepted = "[PASS]" in subjective_review
+        record.accepted = subjective_review.startswith("[PASS]")
         if record.accepted:   
             record.repair_plan = "No repairs needed. Script accepted."
         else:
             record.repair_plan = subjective_review
    
     else:
+        # at least one quantitative check failed, LLM diagnosis determines repairs to fix the failure and pass the checks
         record.repair_plan = diagnose(task, script, failure)
-        record.subjective_review = "None; adressing failing check(s)"
 
 
     return record
