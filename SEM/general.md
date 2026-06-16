@@ -47,4 +47,3 @@
 - [CONV] When using a diode‑connected MOSFET to generate a gate/reference voltage for a current source or mirror, ensure the diode device W/L and any series resistor are chosen so the diode's Vgs settles comfortably above threshold; otherwise the mirrored/current‑source transistor and the stages it biases may remain off.
 
 - [CONV] PMOS current‑mirror loads can force their drain nodes up to Vdd if the mirror reference current or PMOS device widths are too large; limit mirror current (increase the reference resistance) or reduce PMOS width to prevent intermediate nodes from being rail‑stuck.
-

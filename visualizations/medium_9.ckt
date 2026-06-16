@@ -1,0 +1,56 @@
+.title CMOS 4to1 MUX with Transmission Gates
+Vdd Vdd 0 1.8V
+Vin Vin 0 0.9V
+Vd1 D1 0 0.0V
+Vd2 D2 0 1.8V
+Vd3 D3 0 0.0V
+Vs0 S0 0 0.0V
+Vs1 S1 0 0.0V
+MMNinvS0 nS0 S0 0 0 NMOS l=1.8e-07 w=1e-06
+MMPinvS0 nS0 S0 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMNinvS1 nS1 S1 0 0 NMOS l=1.8e-07 w=1e-06
+MMPinvS1 nS1 S1 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_NAND0_1 nE0 nS1 0 0 NMOS l=1.8e-07 w=1e-06
+MMN_NAND0_2 nE0 nS0 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_NAND0_1 nE0 nS1 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMP_NAND0_2 nE0 nS0 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_INV0 E0 nE0 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_INV0 E0 nE0 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_NAND1_1 nE1 nS1 0 0 NMOS l=1.8e-07 w=1e-06
+MMN_NAND1_2 nE1 S0 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_NAND1_1 nE1 nS1 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMP_NAND1_2 nE1 S0 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_INV1 E1 nE1 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_INV1 E1 nE1 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_NAND2_1 nE2 S1 0 0 NMOS l=1.8e-07 w=1e-06
+MMN_NAND2_2 nE2 nS0 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_NAND2_1 nE2 S1 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMP_NAND2_2 nE2 nS0 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_INV2 E2 nE2 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_INV2 E2 nE2 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_NAND3_1 nE3 S1 0 0 NMOS l=1.8e-07 w=1e-06
+MMN_NAND3_2 nE3 S0 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_NAND3_1 nE3 S1 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMP_NAND3_2 nE3 S0 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_INV3 E3 nE3 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_INV3 E3 nE3 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_E0B E0B E0 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_E0B E0B E0 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_E1B E1B E1 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_E1B E1B E1 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_E2B E2B E2 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_E2B E2B E2 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMN_E3B E3B E3 0 0 NMOS l=1.8e-07 w=1e-06
+MMP_E3B E3B E3 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MMTG0_N node_mux E0 Vin 0 NMOS l=1.8e-07 w=2e-06
+MMTG0_P node_mux E0B Vin Vdd PMOS l=1.8e-07 w=4e-06
+MMTG1_N node_mux E1 D1 0 NMOS l=1.8e-07 w=2e-06
+MMTG1_P node_mux E1B D1 Vdd PMOS l=1.8e-07 w=4e-06
+MMTG2_N node_mux E2 D2 0 NMOS l=1.8e-07 w=2e-06
+MMTG2_P node_mux E2B D2 Vdd PMOS l=1.8e-07 w=4e-06
+MMTG3_N node_mux E3 D3 0 NMOS l=1.8e-07 w=2e-06
+MMTG3_P node_mux E3B D3 Vdd PMOS l=1.8e-07 w=4e-06
+MMNbuf Vout node_mux 0 0 NMOS l=1.8e-07 w=2e-06
+MMPbuf Vout node_mux Vdd Vdd PMOS l=1.8e-07 w=4e-06
+.model NMOS nmos (gamma=0.0 kp=0.0002 lambda=0.02 phi=0.7 vt0=0.5)
+.model PMOS pmos (gamma=0.0 kp=8e-05 lambda=0.02 phi=0.7 vt0=-0.5)
