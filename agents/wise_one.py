@@ -8,6 +8,16 @@ import re
 from pathlib import Path
 
 
+from dotenv import load_dotenv
+from openai import OpenAI
+from pathlib import Path
+
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(env_path)
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key= OPENAI_API_KEY)
+
+
 
 SEM_FILE_PATH = Path(__file__).resolve().parent.parent / "SEM"
 
@@ -74,8 +84,10 @@ def curate(iteration: IterationRecord, task: dict) -> str:
         {"role": "user", "content": f"[Existing {task['circuit_type']}.md]\n{existing_task_notes}"}
     ]
 
-    completion = ollama.chat(model="qwen3.5:9b", messages=context)
-    text = completion.message.content
+    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
+    text = completion.choices[0].message.content
+    
+
 
     SEM_updates = {} # filepath (str): text to add (str)
 
