@@ -1,16 +1,13 @@
+from dotenv import load_dotenv
+
 from schema import CheckResult, IterationRecord
 import ollama
 import os
 import re
 
-from dotenv import load_dotenv
-from openai import OpenAI
 from pathlib import Path
 
-env_path = Path(__file__).resolve().parent.parent / '.env'
-load_dotenv(env_path)
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-client = OpenAI(api_key= OPENAI_API_KEY)
+
 
 SEM_FILE_PATH = Path(__file__).resolve().parent.parent / "SEM"
 
@@ -45,6 +42,7 @@ def curate(iteration: IterationRecord, task: dict) -> str:
                             1. A PySpice API or syntax error that would affect any script of this type, not just this one
                             2. A circuit convention or topology requirement that is non-obvious and violated here
                             3. A failure pattern that is likely to recur on similar tasks
+                            4. A successful design pattern that is likely to be applicable in future iterations
 
                             DO NOT write rules that are:
                             - Already present in the existing SEM content provided to you by the user
@@ -76,8 +74,8 @@ def curate(iteration: IterationRecord, task: dict) -> str:
         {"role": "user", "content": f"[Existing {task['circuit_type']}.md]\n{existing_task_notes}"}
     ]
 
-    completion = client.chat.completions.create(model="gpt-5-mini", messages=context)
-    text = completion.choices[0].message.content
+    completion = ollama.chat(model="qwen3.5:9b", messages=context)
+    text = completion.message.content
 
     SEM_updates = {} # filepath (str): text to add (str)
 

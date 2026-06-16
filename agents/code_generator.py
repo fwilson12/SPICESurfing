@@ -1,15 +1,8 @@
+from pathlib import Path
 import ollama
 import os
 import re
 
-from dotenv import load_dotenv
-from openai import OpenAI
-from pathlib import Path
-
-env_path = Path(__file__).resolve().parent.parent / '.env'
-load_dotenv(env_path)
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-client = OpenAI(api_key= OPENAI_API_KEY)
 
 
 SEM_FILE_PATH = Path(__file__).resolve().parent.parent / "SEM"
@@ -86,6 +79,10 @@ def generate_script(task: dict, repair_plan: str, netlist: str = "no previous ne
         {
             "role": "user", 
             "content": f'Create a PySpice script for a {task["name"]}: {task["description"]}.' # Ex:  "Create a script for a CMOS Inverter (NOT Gate): "Uses one NMOS and one PMOS transistor connected in series between Vdd and ground. Input is connected to both gates; output is taken from the connection between the transistors. When the input is high, NMOS conducts, pulling output low; when input is low, PMOS conducts, pulling output high.","
+        },
+        {
+            "role": "user", 
+            "content": f'Here is the netlist from your previous attempt (for reference, not necessarily correct): {netlist}'
         }
     ]
 
@@ -94,6 +91,8 @@ def generate_script(task: dict, repair_plan: str, netlist: str = "no previous ne
                         "content": f"The validation agent identified this failure and repair directive — address it specifically:\n{repair_plan}"})
 
 
-    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
-    text = completion.choices[0].message.content
-    return extract_script(text)
+    completion = ollama.chat(model="qwen3.5:9b", messages=context)
+    script = completion.message.content
+    return extract_script(script)
+
+    
