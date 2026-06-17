@@ -39,7 +39,8 @@ class IterationRecord:
     checks: list[CheckResult] # a list of each of the five CheckResults from optimizer pipeline 
     netlist: str = "n/a" # the netlist extracted from the script after requirement stage
     repair_plan: Optional[str] = None # concise diagnosis and proposed next steps for repair, sourced from optimizer diagnosis agent, if none provided default to None
-    accepted: bool = False 
+    accepted: bool = False
+    plot_data: dict = field(default_factory=dict) # plot-ready simulation arrays captured during the check suite (see optimizer._extract_plot_data); consumed by main's --plots rendering
 
     # returns first failed check if any, else None
     def first_failure(self) -> Optional[CheckResult]:

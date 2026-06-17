@@ -443,6 +443,7 @@ def _check_dc_sweep(profile: CircuitProfile, simspace: dict) -> CheckResult:
 
         tvout = np.array(tran[out_node], dtype=float)
         simspace["tvout"] = tvout
+        simspace["time"] = np.real(np.array(tran.time))  # transient x-axis (s), kept for plotting
         if np.std(tvout) < 1e-3:
             return _result("dc_sweep", False,
                            "Output is flat in transient — circuit is not oscillating.",
@@ -462,6 +463,7 @@ def _check_dc_sweep(profile: CircuitProfile, simspace: dict) -> CheckResult:
 
         mag = np.abs(np.array(ac[out_node], dtype=complex))
         simspace["mag"] = mag
+        simspace["freq"] = np.real(np.array(ac.frequency))  # AC sweep x-axis (Hz), kept for plotting
         if mag.max() < 1e-9:
             return _result("dc_sweep", False,
                            "AC response is ~0 across the band — no signal reaches the output.",
@@ -588,16 +590,111 @@ def _check_waveform(profile: CircuitProfile, simspace: dict) -> CheckResult:
     return _skip("waveform", f"no waveform check for '{profile.mode}' class")
 
 
-def check_suite(script: str, task: dict) -> tuple[list[CheckResult], str]:
+def _extract_plot_data(profile: CircuitProfile, simspace: dict) -> dict:
+    '''
+    Pull the simulation arrays the check stages already computed into a small dict of
+    plain Python lists so the response can be re-plotted later (see render_response_plot)
+    without re-running the simulation. Returns {} when there is nothing meaningful to
+    plot (an early failure, or a static/structural class).
+
+    The 'kind' key tells the renderer how to draw it:
+        "transfer"   : Vout vs Vin DC transfer curve
+        "oscillator" : Vout vs time transient
+        "filter"     : |H| vs frequency magnitude response (log-log)
+    '''
+    try:
+        if profile.mode == "transfer" and "vout" in simspace and "vin" in simspace:
+            return {"kind": "transfer",
+                    "x": np.asarray(simspace["vin"], dtype=float).tolist(),
+                    "y": np.asarray(simspace["vout"], dtype=float).tolist(),
+                    "xlabel": "Vin (V)", "ylabel": "Vout (V)", "title": "DC transfer curve"}
+
+        if profile.mode == "oscillator" and "tvout" in simspace and "time" in simspace:
+            return {"kind": "oscillator",
+                    "x": np.asarray(simspace["time"], dtype=float).tolist(),
+                    "y": np.asarray(simspace["tvout"], dtype=float).tolist(),
+                    "xlabel": "time (s)", "ylabel": "Vout (V)", "title": "Transient response"}
+
+        if profile.mode == "filter" and "mag" in simspace and "freq" in simspace:
+            return {"kind": "filter",
+                    "x": np.asarray(simspace["freq"], dtype=float).tolist(),
+                    "y": np.asarray(simspace["mag"], dtype=float).tolist(),
+                    "xlabel": "frequency (Hz)", "ylabel": "|H|", "title": "AC magnitude response"}
+    except Exception:
+        # plotting data is a nice-to-have; never let it break validation
+        return {}
+    return {}
+
+
+def render_response_plot(plot_data: dict, out_path, title_suffix: str = "", show: bool = False):
+    '''
+    Render a captured response (from _extract_plot_data) to a matplotlib figure.
+    Saves a PNG to out_path and, if show=True, also opens it in a window. Returns the
+    saved path on success or None if there was nothing to draw / matplotlib is missing.
+
+    Imports pyplot freshly here (not the headless-forced _plt above) so that, when
+    show=True, the figure can actually appear — the module-level Agg backend only
+    guards the exec'd generation scripts during validation.
+    '''
+    if not plot_data or "x" not in plot_data or "y" not in plot_data:
+        return None
+    try:
+        import matplotlib
+        if show:
+            # try an interactive backend so the window can pop; fall back silently otherwise
+            try:
+                matplotlib.use("TkAgg", force=True)
+            except Exception:
+                pass
+        import matplotlib.pyplot as plt
+    except Exception:
+        print("[plots] matplotlib unavailable — skipping response plot.")
+        return None
+
+    from pathlib import Path as _Path
+    out_path = _Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    x, y = plot_data["x"], plot_data["y"]
+    kind = plot_data.get("kind", "")
+    title = plot_data.get("title", "Response")
+    if title_suffix:
+        title = f"{title} - {title_suffix}"
+
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    if kind == "filter":
+        ax.loglog(x, y)
+    else:
+        ax.plot(x, y)
+        if kind == "oscillator":
+            ax.ticklabel_format(axis="x", style="sci", scilimits=(0, 0))
+    ax.set_xlabel(plot_data.get("xlabel", "x"))
+    ax.set_ylabel(plot_data.get("ylabel", "y"))
+    ax.set_title(title)
+    ax.grid(True, which="both", alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=130)
+    print(f"[plots] Response plot saved to {out_path}")
+    if show:
+        try:
+            plt.show()
+        except Exception as e:
+            print(f"[plots] Could not open plot window ({e}); PNG still saved.")
+    plt.close(fig)
+    return out_path
+
+
+def check_suite(script: str, task: dict) -> tuple[list[CheckResult], str, dict]:
     '''
     Run the five check stages in order, short-circuiting on the first failure.
     The circuit profile (resolved from task['circuit_type']) decides which stimulus
     drives stages 3-5 and which assertions apply; simspace carries the circuit object
-    and simulation results between stages. 
+    and simulation results between stages.
 
     Returns a tuple containing:
         - A list of CheckResults, one per stage (passed=True for skipped stages, which are not failures)
         - The netlist string if the requirement stage passed and defined a circuit.
+        - A plot_data dict of the captured response arrays (see _extract_plot_data); {} if nothing plottable.
     '''
     profile = profile_for(task)
     simspace = {}  # isolated namespace for the exec'd script + sim artifacts shared across stages
@@ -617,10 +714,12 @@ def check_suite(script: str, task: dict) -> tuple[list[CheckResult], str]:
         if not result.passed:   # skipped stages are passed=True, so they never short-circuit
             break
 
-    # get pure netlist from PySpice script, fed back into optimization agent instead of the full script for compactness 
+    # get pure netlist from PySpice script, fed back into optimization agent instead of the full script for compactness
     netlist = str(simspace.get("circuit", "n/a"))
 
-    return results, netlist
+    plot_data = _extract_plot_data(profile, simspace)
+
+    return results, netlist, plot_data
 
 
 def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
@@ -752,7 +851,7 @@ def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRec
     '''
     record = IterationRecord(attempt = attempt, task_type = task["circuit_type"], script = script, checks = [])
 
-    record.checks, record.netlist = check_suite(script, task)
+    record.checks, record.netlist, record.plot_data = check_suite(script, task)
 
     failure = record.first_failure()
     if failure is None:

@@ -47,3 +47,11 @@
 - [CONV] When using a diode‑connected MOSFET to generate a gate/reference voltage for a current source or mirror, ensure the diode device W/L and any series resistor are chosen so the diode's Vgs settles comfortably above threshold; otherwise the mirrored/current‑source transistor and the stages it biases may remain off.
 
 - [CONV] PMOS current‑mirror loads can force their drain nodes up to Vdd if the mirror reference current or PMOS device widths are too large; limit mirror current (increase the reference resistance) or reduce PMOS width to prevent intermediate nodes from being rail‑stuck.
+- [NODE] Do not tie NMOS load or gain-device bulks to ground when the device source sits near Vdd; for high-side NMOS loads or level shifters, tie the bulk to the highest local potential (often Vdd) to avoid forward-biasing body diodes and collapsing the node toward ground.
+- [CONV] In differential NMOS input stages with PMOS tail/current-mirror loads, choose the input common-mode so that the NMOS pair’s Vgs is comfortably above Vth (Vcm ≳ Vth + 0.2–0.3 V) to keep the pair and mirrors in saturation; too-low Vcm leaves the entire OTA near cutoff and the output rail-stuck.
+
+- [CONV] Do not self-bias an NMOS current-source or bias transistor by tying its gate to its own drain when that drain is pulled toward ground through a large resistor; this collapses Vgs toward 0 V, shuts the device off, and starves all downstream bias/current-sink stages.
+- [CONV] When using a PMOS as a “tail” current source for an NMOS differential pair, its source must sit above its gate by at least |Vth| (Vsg > |Vth|); bias schemes that pull the gate node down near ground while the source is fixed at Vdd will yield Vsg ≈ 0 and turn the PMOS tail completely off.
+
+- [API] PySpice’s Unit module does not define submultiples for every SI prefix; if a convenience symbol like `u_fF` is missing, express the value with a numeric scale factor on a supported base unit (e.g. use `10e-15@u_F` for 10 fF) instead of inventing a new unit name.
+
