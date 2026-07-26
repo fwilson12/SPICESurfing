@@ -10,21 +10,12 @@ assertions are meaningful, so the suite runs end-to-end for amplifiers, oscillat
 filters, mirrors and digital/system blocks instead of assuming everything is an amplifier.
 '''
 
-import ollama
 import numpy as np
 from dataclasses import dataclass, field
 from schema import CheckResult, IterationRecord
 from agents.code_generator import fetch_SEM, SEM_FILE_PATH
-import os
 
-from dotenv import load_dotenv
-from openai import OpenAI
-from pathlib import Path
-
-env_path = Path(__file__).resolve().parent.parent / '.env'
-load_dotenv(env_path)
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-client = OpenAI(api_key= OPENAI_API_KEY)
+import llm
 
 
 # Generated scripts often end with their own matplotlib plotting. Force a headless
@@ -784,8 +775,7 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
     
-    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
-    text = completion.choices[0].message.content
+    text = llm.chat(context)
     return text
 
 
@@ -839,8 +829,7 @@ def holistic_review(task: dict, script: str) -> str:
         },
     ]
     
-    completion = client.chat.completions.create(model="gpt-5.1", messages=context)
-    text = completion.choices[0].message.content
+    text = llm.chat(context)
     return text
 
 def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRecord:

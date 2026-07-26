@@ -6,6 +6,7 @@ from pathlib import Path
 
 from schema import IterationRecord
 
+import llm
 from agents.optimizer import validate_and_optimize, render_response_plot
 from agents.wise_one import curate
 from agents.code_generator import generate_script
@@ -19,7 +20,7 @@ def circuit_time(task: dict, max_attempts: int) -> list[IterationRecord]:
     current_netlist = ""
     for i in range(max_attempts):
 
-        print(f"\n{'=' * 60}\n  ATTEMPT {i + 1} OF {max_attempts}  |  {task['name']}\n{'=' * 60}")
+        print(f"\n{'=' * 60}\n  ATTEMPT {i + 1} OF {max_attempts}  |  {task['name']}  |  {llm.description()}\n{'=' * 60}")
 
         ''' Script Generation '''
         print("\n--- Generating PySpice code ---\n")
@@ -137,7 +138,7 @@ def plot_response(records: list[IterationRecord], task_label: str) -> None:
     pop it open
     '''
     if not (records and records[-1].accepted):
-        print("\n[plots] No accepted circuit — nothing to plot.")
+        print("\n[plots] No accepted circuit, nothing to plot.")
         return
     plot_data = records[-1].plot_data
     if not plot_data:
@@ -173,9 +174,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', required=True, help='Path to task JSON file (e.g. tasks/easy_6.json)')
     parser.add_argument('--max_attempts', type=int, default=10)
+    parser.add_argument('--llm', choices=llm.PROVIDERS, default='openai',
+                        help='Inference source for all three agents (default: openai)')
+    parser.add_argument('--model', default=None,
+                        help='Model name for the chosen provider (defaults: '
+                             + ', '.join(f'{p}={m}' for p, m in llm.DEFAULT_MODELS.items()) + ')')
     parser.add_argument('--visualize', action='store_true', help='On success, render the final netlist as a schematic in netlist-viewer')
     parser.add_argument('--viewer', default=DEFAULT_VIEWER_EXE, help='Path to the netlist_viewer.exe used by --visualize')
     parser.add_argument('--plots', action='store_true', help='On success, render the simulation response (DC/transient/AC) as a matplotlib plot, save it to visualizations/, and open it')
 
     args = parser.parse_args()
+    llm.configure(args.llm, args.model)
     main(json.loads(Path(args.task).read_text()), args.max_attempts, visualize=args.visualize, viewer_exe=args.viewer, task_label=Path(args.task).stem, plots=args.plots)
