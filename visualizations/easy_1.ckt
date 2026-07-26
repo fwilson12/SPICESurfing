@@ -1,0 +1,14 @@
+.title CMOS_Inverter
+
+Vdd Vdd 0 1.8V
+
+Vin Vin 0 0V
+
+MP1 Vout Vin Vdd Vdd PMOS_CORE l=1.8e-07 w=1e-06
+
+MN1 Vout Vin 0 0 NMOS_CORE l=1.8e-07 w=5e-07
+
+.model NMOS_CORE nmos (gamma=0.6 kp=0.00012 lambda=0.02 phi=0.7 vt0=0.5)
+
+.model PMOS_CORE pmos (gamma=0.6 kp=4e-05 lambda=0.02 phi=0.7 vt0=-0.5)
+

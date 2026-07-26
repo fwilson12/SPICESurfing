@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 870" width="1400" height="870" font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0.8 L10,5 L0,9.2 z" fill="#9A9A9A"/></marker>
+    <marker id="a-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0.8 L10,5 L0,9.2 z" fill="#E9A15C"/></marker>
+    <marker id="a-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0.8 L10,5 L0,9.2 z" fill="#7FC98F"/></marker>
+    <marker id="a-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0.8 L10,5 L0,9.2 z" fill="#E58C74"/></marker>
+    <marker id="a-bright" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0.8 L10,5 L0,9.2 z" fill="#DCDCDC"/></marker>
+  </defs>
+  <rect width="1400" height="870" fill="#141414"/>
+  <text x="50" y="80" font-size="22" font-weight="600" fill="#FFFFFF">SPICESurfing</text>
+  <text x="50" y="102" font-size="12.5" fill="#B4B4B4">self-evolving multi-agent LLM system for EDA</text>
+  <rect x="50" y="225" width="210" height="160" rx="12" fill="none" stroke="#E6E6E6" stroke-width="2.0"/>
+  <text x="155.0" y="268.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" fill="#FFFFFF" font-weight="600">Task Prompt</tspan></text>
+  <text x="155.0" y="294.6" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="11.5" fill="#E9A15C">tasks/</tspan></text>
+  <rect x="64" y="306" width="178" height="68" rx="8" fill="none" stroke="none" stroke-width="0"/>
+  <text x="76" y="318.5" text-anchor="start" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="11" fill="#7E7E7E">{</tspan></text>
+  <text x="76" y="335.6" text-anchor="start" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="11" fill="#E9A15C">   circuit type,</tspan></text>
+  <text x="76" y="352.6" text-anchor="start" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="11" fill="#E9A15C">   functional spec</tspan></text>
+  <text x="76" y="369.7" text-anchor="start" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="11" fill="#7E7E7E">}</tspan></text>
+  <rect x="310" y="225" width="250" height="150" rx="12" fill="none" stroke="#E6E6E6" stroke-width="2.0"/>
+  <text x="435.0" y="268.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" fill="#FFFFFF" font-weight="600">Code Generator</tspan></text>
+  <text x="435.0" y="296.2" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="11.5" fill="#E9A15C">agents/code_generator.py</tspan></text>
+  <text x="435.0" y="314.1" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="5" fill="#7E7E7E"> </tspan></text>
+  <text x="435.0" y="321.8" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#B4B4B4">drafts one complete, executable</tspan></text>
+  <text x="435.0" y="338.9" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#B4B4B4">PySpice script per attempt, from</tspan></text>
+  <text x="435.0" y="355.9" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#B4B4B4">the task, SEM rules and last attempt</tspan></text>
+  <rect x="620" y="40" width="470" height="582" rx="12" fill="none" stroke="#E6E6E6" stroke-width="2.0"/>
+  <text x="855.0" y="74.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#FFFFFF" font-weight="600">Optimizer</tspan></text>
+  <text x="855.0" y="105.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="12" fill="#E9A15C">agents/optimizer.py</tspan></text>
+  <rect x="645" y="118" width="420" height="34" rx="8" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="855.0" y="139.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11.5" fill="#B4B4B4">exec() the script &amp; run the ngspice simulation</tspan></text>
+  <rect x="645" y="164" width="420" height="30" rx="8" fill="none" stroke="#3E3E3E" stroke-width="1.0"/>
+  <text x="855.0" y="182.5" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" fill="#B4B4B4">checks vary by circuit class: transfer, oscillator, filter, static, structural</tspan></text>
+  <rect x="645" y="204" width="420" height="28" rx="6" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="659" y="222.1" text-anchor="start"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#FFFFFF" font-weight="600">1  |  requirement</tspan></text>
+  <text x="1051" y="222.1" text-anchor="end"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">compiles, devices present</tspan></text>
+  <rect x="645" y="236" width="420" height="28" rx="6" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="659" y="254.1" text-anchor="start"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#FFFFFF" font-weight="600">2  |  op_point</tspan></text>
+  <text x="1051" y="254.1" text-anchor="end"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">operating point converges</tspan></text>
+  <rect x="645" y="268" width="420" height="28" rx="6" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="659" y="286.1" text-anchor="start"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#FFFFFF" font-weight="600">3  |  dc_sweep</tspan></text>
+  <text x="1051" y="286.1" text-anchor="end"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">output responds to stimulus</tspan></text>
+  <rect x="645" y="300" width="420" height="28" rx="6" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="659" y="318.1" text-anchor="start"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#FFFFFF" font-weight="600">4  |  function</tspan></text>
+  <text x="1051" y="318.1" text-anchor="end"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">meets its class assertion</tspan></text>
+  <rect x="645" y="332" width="420" height="28" rx="6" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="659" y="350.1" text-anchor="start"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#FFFFFF" font-weight="600">5  |  waveform</tspan></text>
+  <text x="1051" y="350.1" text-anchor="end"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">output shape is sane</tspan></text>
+  <rect x="645" y="435" width="200" height="110" rx="12" fill="none" stroke="#E6E6E6" stroke-width="2.0"/>
+  <text x="745.0" y="460.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="15" fill="#FFFFFF" font-weight="600">diagnose()</tspan></text>
+  <text x="745.0" y="483.6" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E" font-style="italic">extra LLM pass</tspan></text>
+  <text x="745.0" y="499.1" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="4" fill="#7E7E7E"> </tspan></text>
+  <text x="745.0" y="505.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#B4B4B4">reads the failing stage</tspan></text>
+  <text x="745.0" y="521.5" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#B4B4B4">root-cause analysis</tspan></text>
+  <text x="745.0" y="537.8" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#E9A15C">returns a repair plan</tspan></text>
+  <rect x="865" y="435" width="200" height="110" rx="12" fill="none" stroke="#E6E6E6" stroke-width="2.0"/>
+  <text x="965.0" y="460.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="15" fill="#FFFFFF" font-weight="600">holistic_review()</tspan></text>
+  <text x="965.0" y="483.6" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E" font-style="italic">extra LLM pass</tspan></text>
+  <text x="965.0" y="499.1" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="4" fill="#7E7E7E"> </tspan></text>
+  <text x="965.0" y="505.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#B4B4B4">judges the design as a whole</tspan></text>
+  <text x="965.0" y="521.5" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#B4B4B4">even when every check passes</tspan></text>
+  <text x="965.0" y="537.8" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#B4B4B4">gates final acceptance</tspan></text>
+  <rect x="645" y="570" width="420" height="32" rx="8" fill="none" stroke="#E9A15C" stroke-width="1.2"/>
+  <text x="659" y="590.5" text-anchor="start"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" fill="#E9A15C" font-weight="600">repair plan</tspan></text>
+  <text x="1051" y="590.5" text-anchor="end"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">+ previous netlist, carried into the next attempt</tspan></text>
+  <rect x="620" y="650" width="470" height="32" rx="8" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="634" y="670.3" text-anchor="start"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="11.5" fill="#FFFFFF" font-weight="600">IterationRecord</tspan></text>
+  <text x="1076" y="670.3" text-anchor="end"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">script, checks, netlist, repair_plan, accepted</tspan></text>
+  <rect x="620" y="700" width="470" height="140" rx="12" fill="none" stroke="#E6E6E6" stroke-width="2.0"/>
+  <text x="855.0" y="736.0" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="20" fill="#FFFFFF" font-weight="600">Wise One</tspan></text>
+  <text x="855.0" y="767.0" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" fill="#B4B4B4">the knowledge curator</tspan></text>
+  <text x="855.0" y="786.4" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="12" fill="#E9A15C">agents/wise_one.py</tspan></text>
+  <text x="855.0" y="805.0" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="4" fill="#7E7E7E"> </tspan></text>
+  <text x="855.0" y="811.2" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" fill="#B4B4B4">reviews failure patterns and successful designs,</tspan></text>
+  <text x="855.0" y="830.5" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12.5" fill="#B4B4B4">recording generalizable insights for future iterations</tspan></text>
+  <rect x="50" y="570" width="450" height="190" rx="12" fill="none" stroke="#E6E6E6" stroke-width="2.0"/>
+  <text x="275.0" y="602.1" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" fill="#FFFFFF" font-weight="600">Self-Evolving Memory  (SEM)</tspan></text>
+  <rect x="70" y="630" width="195" height="110" rx="8" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="167.5" y="666.2" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="13" fill="#E9A15C" font-weight="600">general.md</tspan></text>
+  <text x="167.5" y="686.3" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#B4B4B4">always retrieved</tspan></text>
+  <text x="167.5" y="702.6" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">[API] [NODE] [SYNTAX]</tspan></text>
+  <text x="167.5" y="718.1" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">[SIM] [CONV]</tspan></text>
+  <rect x="285" y="630" width="195" height="110" rx="8" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="382.5" y="665.8" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="12" fill="#E9A15C" font-weight="600">task_types/&lt;Type&gt;.md</tspan></text>
+  <text x="382.5" y="684.4" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#B4B4B4">retrieved when a file</tspan></text>
+  <text x="382.5" y="700.7" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#B4B4B4">for the type exists</tspan></text>
+  <text x="382.5" y="717.0" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" fill="#7E7E7E">Amplifier, Opamp, Inverter …</tspan></text>
+  <rect x="1140" y="445" width="210" height="72" rx="12" fill="none" stroke="#7FC98F" stroke-width="2.0"/>
+  <text x="1245.0" y="478.8" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" fill="#7FC98F" font-weight="600">ACCEPTED</tspan></text>
+  <text x="1245.0" y="505.1" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#B4B4B4">final netlist</tspan></text>
+  <rect x="1140" y="555" width="210" height="260" rx="12" fill="none" stroke="#E6E6E6" stroke-width="2.0"/>
+  <text x="1245.0" y="586.0" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" fill="#FFFFFF" font-weight="600">Outputs</tspan></text>
+  <rect x="1155" y="607" width="180" height="56" rx="8" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="1245.0" y="623.8" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="10.5" fill="#E9A15C">&lt;task&gt;.ckt</tspan></text>
+  <text x="1245.0" y="640.1" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#B4B4B4">netlist file, written to</tspan></text>
+  <text x="1245.0" y="655.6" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="9.5" fill="#E9A15C">visualizations/</tspan></text>
+  <rect x="1155" y="671" width="180" height="62" rx="8" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="1245.0" y="690.4" text-anchor="middle" xml:space="preserve"><tspan font-family="Consolas, Menlo, Monaco, monospace" font-size="10.5" fill="#E9A15C">&lt;task&gt;_response.png</tspan></text>
+  <text x="1245.0" y="706.7" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#B4B4B4">ngspice response plot</tspan></text>
+  <text x="1245.0" y="722.2" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#7E7E7E">DC, transient or AC</tspan></text>
+  <rect x="1155" y="741" width="180" height="56" rx="8" fill="none" stroke="#5E5E5E" stroke-width="1.2"/>
+  <text x="1245.0" y="757.4" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#E9A15C" font-weight="600">record book</tspan></text>
+  <text x="1245.0" y="773.7" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#B4B4B4">every attempt: scripts,</tspan></text>
+  <text x="1245.0" y="789.2" text-anchor="middle" xml:space="preserve"><tspan font-family="Segoe UI, Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" fill="#B4B4B4">checks and repair plans</tspan></text>
+  <polyline points="260,300 310,300" fill="none" stroke="#9A9A9A" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-grey)"/>
+  <polyline points="560,270 620,270" fill="none" stroke="#9A9A9A" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-grey)"/>
+  <polyline points="720,360 720,435" fill="none" stroke="#E58C74" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-red)"/>
+  <polyline points="965,360 965,435" fill="none" stroke="#7FC98F" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-green)"/>
+  <polyline points="1065,482 1140,482" fill="none" stroke="#7FC98F" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-green)"/>
+  <polyline points="745,545 745,570" fill="none" stroke="#E9A15C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-amber)"/>
+  <polyline points="965,545 965,570" fill="none" stroke="#E58C74" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-red)"/>
+  <polyline points="645,586 530,586 530,375" fill="none" stroke="#E9A15C" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-amber)"/>
+  <polyline points="855,622 855,650" fill="none" stroke="#9A9A9A" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-grey)"/>
+  <polyline points="855,682 855,700" fill="none" stroke="#9A9A9A" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-grey)"/>
+  <polyline points="620,725 500,725" fill="none" stroke="#E9A15C" stroke-width="1.6" stroke-linejoin="round" stroke-dasharray="2 7" marker-end="url(#a-amber)"/>
+  <polyline points="350,570 350,375" fill="none" stroke="#DCDCDC" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-bright)"/>
+  <polyline points="1245,517 1245,555" fill="none" stroke="#7FC98F" stroke-width="1.6" stroke-linejoin="round" marker-end="url(#a-green)"/>
+  <text x="712" y="402" text-anchor="end" font-size="10" fill="#E58C74">any stage fails</text>
+  <text x="975" y="402" text-anchor="start" font-size="10" fill="#7FC98F">all five pass</text>
+  <text x="1102" y="474" text-anchor="middle" font-size="10" fill="#7FC98F">[PASS]</text>
+  <text x="975" y="563" text-anchor="start" font-size="10" fill="#E58C74">[FAIL]</text>
+  <rect x="441.5" y="440.5" width="177.0" height="13.5" fill="#141414"/>
+  <text x="530" y="450" text-anchor="middle" font-size="10" fill="#E9A15C">repair plan + previous netlist</text>
+  <text x="560" y="717" text-anchor="middle" font-size="10" fill="#E9A15C">SEM addition</text>
+  <rect x="254.5" y="490.0" width="191.0" height="14.2" fill="#141414"/>
+  <text x="350" y="500" text-anchor="middle" font-size="10.5" fill="#DCDCDC">read: general + task-type rules</text>
+  <text x="590" y="290" text-anchor="middle" font-size="11" fill="#B4B4B4">PySpice</text>
+  <text x="590" y="304" text-anchor="middle" font-size="11" fill="#B4B4B4">script</text>
+</svg>
