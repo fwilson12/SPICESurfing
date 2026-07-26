@@ -1,6 +1,7 @@
 PySpice
 numpy
 matplotlib
-ollama
 python-dotenv
 openai
+anthropic
+ollama
