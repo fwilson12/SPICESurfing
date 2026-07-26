@@ -5,6 +5,7 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
 ![Anthropic](https://img.shields.io/badge/Anthropic-D97757?logo=anthropic&logoColor=white)
 ![Ollama](https://img.shields.io/badge/Ollama-000000?logo=ollama&logoColor=white)
+![MIT License](https://img.shields.io/badge/MIT-3DA639)
 
 A multi-agent system that turns natural-language circuit descriptions into validated, simulated circuits.
 
@@ -61,6 +62,7 @@ SPICESurfing/
 ├── visualizations/     # saved netlists (.ckt) and response plots from accepted runs
 ├── docs/               # architecture diagram and figures
 ├── requirements.txt
+├── LICENSE
 └── THIRD_PARTY_LICENSES    # license for the benchmark tasks adapted from SPICEPilot
 ```
 
