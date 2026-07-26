@@ -1,0 +1,14 @@
+.title ThreeStageRingOscillator
+Vdd Vdd 0 1.8V
+Vin Vin 0 0.9V
+MP1 Vout n3 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MN1 Vout n3 0 0 NMOS l=1.8e-07 w=1e-06
+MP2 n2 Vout Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MN2 n2 Vout 0 0 NMOS l=1.8e-07 w=1e-06
+MP3 n3 n2 Vdd Vdd PMOS l=1.8e-07 w=2e-06
+MN3 n3 n2 0 0 NMOS l=1.8e-07 w=1e-06
+C1 Vout 0 1e-14
+C2 n2 0 1e-14
+C3 n3 0 1e-14
+.model NMOS nmos (gamma=0.0 kp=0.00012 lambda=0.02 vt0=0.5)
+.model PMOS pmos (gamma=0.0 kp=4e-05 lambda=0.02 vt0=-0.5)

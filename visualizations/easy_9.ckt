@@ -1,0 +1,9 @@
+.title Simple_NMOS_Current_Mirror
+Vdd Vdd 0 3.3V
+Vin Vin 0 1.2V
+Rref Vdd Ref 100kOhm
+M1 Ref Ref 0 0 NMOS_MOD l=1e-06 w=1e-05
+Rgatebias Vin Ref 10kOhm
+M2 Vout Ref 0 0 NMOS_MOD l=1e-06 w=1e-05
+Rload Vdd Vout 50kOhm
+.model NMOS_MOD nmos (kp=0.0002 lambda=0.02 vt0=0.7)

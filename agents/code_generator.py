@@ -1,9 +1,8 @@
 from pathlib import Path
-import ollama
 import os
 import re
 
-
+import llm
 
 SEM_FILE_PATH = Path(__file__).resolve().parent.parent / "SEM"
 
@@ -91,8 +90,9 @@ def generate_script(task: dict, repair_plan: str, netlist: str = "no previous ne
                         "content": f"The validation agent identified this failure and repair directive — address it specifically:\n{repair_plan}"})
 
 
-    completion = ollama.chat(model="qwen3.5:9b", messages=context)
-    script = completion.message.content
-    return extract_script(script)
+    text = llm.chat(context)
+    return extract_script(text)
+
+   
 
     

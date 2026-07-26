@@ -10,11 +10,12 @@ assertions are meaningful, so the suite runs end-to-end for amplifiers, oscillat
 filters, mirrors and digital/system blocks instead of assuming everything is an amplifier.
 '''
 
-import ollama
 import numpy as np
 from dataclasses import dataclass, field
 from schema import CheckResult, IterationRecord
 from agents.code_generator import fetch_SEM, SEM_FILE_PATH
+
+import llm
 
 
 # Generated scripts often end with their own matplotlib plotting. Force a headless
@@ -30,8 +31,11 @@ except Exception:
 
 
 # --- Tunable thresholds ----------------------------------------------------
-NMOS_VTH = 0.5          # approx threshold voltage magnitude for saturation checks
-PMOS_VTH = 0.5          # magnitude — actual PMOS Vth is negative
+# Fallback threshold-voltage magnitude (|Vto|) used ONLY when a MOSFET model does
+# not declare one. _model_vth() prefers the value from the actual model so the
+# saturation check matches the device the generator instantiated (the generated
+# models use vt0=0.7; a hardcoded 0.5 made the saturation bar > 2x too strict).
+DEFAULT_VTH = 0.7
 
 RAIL_STUCK_TOL = 0.02   # |std(Vout)| / Vdd below this: output is pinned to a rail
 SWING_FRACTION = 0.6    # transfer output must swing ≥ this fraction of Vdd
@@ -195,10 +199,38 @@ def _find_output_node(circuit, profile: CircuitProfile):
     return None
 
 
+def _model_vth(circuit, model_name: str, default: float = DEFAULT_VTH) -> float:
+    '''
+    Threshold-voltage magnitude (|Vto|) for a MOSFET model, read from the circuit's
+    model definitions so the saturation check matches the device the generator
+    actually instantiated. Falls back to `default` if the model or its Vto
+    parameter can't be located (keeps the check robust to PySpice version quirks).
+    '''
+    try:
+        for model in circuit.models:
+            if str(model.name).lower() != str(model_name).lower():
+                continue
+            # PySpice may expose params as a mapping or as attributes; try both.
+            params = getattr(model, "parameters", None)
+            if isinstance(params, dict):
+                for key in ("vto", "vt0", "vth"):
+                    if params.get(key) is not None:
+                        return abs(float(params[key]))
+            for key in ("vto", "vt0", "vth"):
+                val = getattr(model, key, None)
+                if val is not None:
+                    return abs(float(val))
+            break
+    except Exception:
+        pass
+    return default
+
+
 def _saturation_failures(circuit, op) -> list[str]:
     '''
     For each MOSFET, confirm it is biased in saturation at the operating point
     (NMOS: Vgs>Vth and Vds>Vgs-Vth; PMOS: Vsg>|Vth| and Vsd>Vsg-|Vth|).
+    The threshold is read per-device from its model (see _model_vth).
     Returns a list of human-readable violations (empty ⇒ all transistors saturated).
     '''
     def node_v(pin) -> float:
@@ -214,6 +246,7 @@ def _saturation_failures(circuit, op) -> list[str]:
         # classify as NMOS vs PMOS by model name (convention) and check the relevant saturation inequalities
         name = str(element.name)
         is_pmos = "pmos" in str(element.model).lower() or str(element.model).lower().startswith("p")
+        vth = _model_vth(circuit, str(element.model))
         try:
             vg = node_v(element.gate)
             vs = node_v(element.source)
@@ -224,16 +257,16 @@ def _saturation_failures(circuit, op) -> list[str]:
 
         if is_pmos:
             vsg, vsd = vs - vg, vs - vd
-            if vsg < PMOS_VTH:
-                failures.append(f"{name} (PMOS): Vsg={vsg:.3f}V < Vth={PMOS_VTH}V — not in saturation")
-            elif vsd < vsg - PMOS_VTH:
-                failures.append(f"{name} (PMOS): Vsd={vsd:.3f}V < Vsg-Vth={vsg - PMOS_VTH:.3f}V — not in saturation")
+            if vsg < vth:
+                failures.append(f"{name} (PMOS): Vsg={vsg:.3f}V < Vth={vth:.3f}V — not in saturation")
+            elif vsd < vsg - vth:
+                failures.append(f"{name} (PMOS): Vsd={vsd:.3f}V < Vsg-Vth={vsg - vth:.3f}V — not in saturation")
         else:
             vgs, vds = vg - vs, vd - vs
-            if vgs < NMOS_VTH:
-                failures.append(f"{name} (NMOS): Vgs={vgs:.3f}V < Vth={NMOS_VTH}V — not in saturation")
-            elif vds < vgs - NMOS_VTH:
-                failures.append(f"{name} (NMOS): Vds={vds:.3f}V < Vgs-Vth={vgs - NMOS_VTH:.3f}V — not in saturation")
+            if vgs < vth:
+                failures.append(f"{name} (NMOS): Vgs={vgs:.3f}V < Vth={vth:.3f}V — not in saturation")
+            elif vds < vgs - vth:
+                failures.append(f"{name} (NMOS): Vds={vds:.3f}V < Vgs-Vth={vgs - vth:.3f}V — not in saturation")
     return failures
 
 
@@ -401,6 +434,7 @@ def _check_dc_sweep(profile: CircuitProfile, simspace: dict) -> CheckResult:
 
         tvout = np.array(tran[out_node], dtype=float)
         simspace["tvout"] = tvout
+        simspace["time"] = np.real(np.array(tran.time))  # transient x-axis (s), kept for plotting
         if np.std(tvout) < 1e-3:
             return _result("dc_sweep", False,
                            "Output is flat in transient — circuit is not oscillating.",
@@ -420,6 +454,7 @@ def _check_dc_sweep(profile: CircuitProfile, simspace: dict) -> CheckResult:
 
         mag = np.abs(np.array(ac[out_node], dtype=complex))
         simspace["mag"] = mag
+        simspace["freq"] = np.real(np.array(ac.frequency))  # AC sweep x-axis (Hz), kept for plotting
         if mag.max() < 1e-9:
             return _result("dc_sweep", False,
                            "AC response is ~0 across the band — no signal reaches the output.",
@@ -473,7 +508,7 @@ def _check_function(profile: CircuitProfile, simspace: dict) -> CheckResult:
         circuit = simspace["circuit"]
         vdd, _, _ = _classify_sources(circuit)
         try:
-            vout = float(simspace["op"][simspace["out_node"]])
+            vout = float(simspace["op"][simspace["out_node"]][-1])
         except Exception as e:
             return _result("function", False, f"Could not read output bias: {e}", str(e))
         if not (0.1 * vdd < vout < 0.9 * vdd):
@@ -546,16 +581,111 @@ def _check_waveform(profile: CircuitProfile, simspace: dict) -> CheckResult:
     return _skip("waveform", f"no waveform check for '{profile.mode}' class")
 
 
-def check_suite(script: str, task: dict) -> tuple[list[CheckResult], str]:
+def _extract_plot_data(profile: CircuitProfile, simspace: dict) -> dict:
+    '''
+    Pull the simulation arrays the check stages already computed into a small dict of
+    plain Python lists so the response can be re-plotted later (see render_response_plot)
+    without re-running the simulation. Returns {} when there is nothing meaningful to
+    plot (an early failure, or a static/structural class).
+
+    The 'kind' key tells the renderer how to draw it:
+        "transfer"   : Vout vs Vin DC transfer curve
+        "oscillator" : Vout vs time transient
+        "filter"     : |H| vs frequency magnitude response (log-log)
+    '''
+    try:
+        if profile.mode == "transfer" and "vout" in simspace and "vin" in simspace:
+            return {"kind": "transfer",
+                    "x": np.asarray(simspace["vin"], dtype=float).tolist(),
+                    "y": np.asarray(simspace["vout"], dtype=float).tolist(),
+                    "xlabel": "Vin (V)", "ylabel": "Vout (V)", "title": "DC transfer curve"}
+
+        if profile.mode == "oscillator" and "tvout" in simspace and "time" in simspace:
+            return {"kind": "oscillator",
+                    "x": np.asarray(simspace["time"], dtype=float).tolist(),
+                    "y": np.asarray(simspace["tvout"], dtype=float).tolist(),
+                    "xlabel": "time (s)", "ylabel": "Vout (V)", "title": "Transient response"}
+
+        if profile.mode == "filter" and "mag" in simspace and "freq" in simspace:
+            return {"kind": "filter",
+                    "x": np.asarray(simspace["freq"], dtype=float).tolist(),
+                    "y": np.asarray(simspace["mag"], dtype=float).tolist(),
+                    "xlabel": "frequency (Hz)", "ylabel": "|H|", "title": "AC magnitude response"}
+    except Exception:
+        # plotting data is a nice-to-have; never let it break validation
+        return {}
+    return {}
+
+
+def render_response_plot(plot_data: dict, out_path, title_suffix: str = "", show: bool = False):
+    '''
+    Render a captured response (from _extract_plot_data) to a matplotlib figure.
+    Saves a PNG to out_path and, if show=True, also opens it in a window. Returns the
+    saved path on success or None if there was nothing to draw / matplotlib is missing.
+
+    Imports pyplot freshly here (not the headless-forced _plt above) so that, when
+    show=True, the figure can actually appear — the module-level Agg backend only
+    guards the exec'd generation scripts during validation.
+    '''
+    if not plot_data or "x" not in plot_data or "y" not in plot_data:
+        return None
+    try:
+        import matplotlib
+        if show:
+            # try an interactive backend so the window can pop; fall back silently otherwise
+            try:
+                matplotlib.use("TkAgg", force=True)
+            except Exception:
+                pass
+        import matplotlib.pyplot as plt
+    except Exception:
+        print("[plots] matplotlib unavailable — skipping response plot.")
+        return None
+
+    from pathlib import Path as _Path
+    out_path = _Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    x, y = plot_data["x"], plot_data["y"]
+    kind = plot_data.get("kind", "")
+    title = plot_data.get("title", "Response")
+    if title_suffix:
+        title = f"{title} - {title_suffix}"
+
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    if kind == "filter":
+        ax.loglog(x, y)
+    else:
+        ax.plot(x, y)
+        if kind == "oscillator":
+            ax.ticklabel_format(axis="x", style="sci", scilimits=(0, 0))
+    ax.set_xlabel(plot_data.get("xlabel", "x"))
+    ax.set_ylabel(plot_data.get("ylabel", "y"))
+    ax.set_title(title)
+    ax.grid(True, which="both", alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=130)
+    print(f"[plots] Response plot saved to {out_path}")
+    if show:
+        try:
+            plt.show()
+        except Exception as e:
+            print(f"[plots] Could not open plot window ({e}); PNG still saved.")
+    plt.close(fig)
+    return out_path
+
+
+def check_suite(script: str, task: dict) -> tuple[list[CheckResult], str, dict]:
     '''
     Run the five check stages in order, short-circuiting on the first failure.
     The circuit profile (resolved from task['circuit_type']) decides which stimulus
     drives stages 3-5 and which assertions apply; simspace carries the circuit object
-    and simulation results between stages. 
+    and simulation results between stages.
 
     Returns a tuple containing:
         - A list of CheckResults, one per stage (passed=True for skipped stages, which are not failures)
         - The netlist string if the requirement stage passed and defined a circuit.
+        - A plot_data dict of the captured response arrays (see _extract_plot_data); {} if nothing plottable.
     '''
     profile = profile_for(task)
     simspace = {}  # isolated namespace for the exec'd script + sim artifacts shared across stages
@@ -575,20 +705,45 @@ def check_suite(script: str, task: dict) -> tuple[list[CheckResult], str]:
         if not result.passed:   # skipped stages are passed=True, so they never short-circuit
             break
 
-    # get pure netlist from PySpice script, fed back into optimization agent instead of the full script for compactness 
+    # get pure netlist from PySpice script, fed back into optimization agent instead of the full script for compactness
     netlist = str(simspace.get("circuit", "n/a"))
 
-    return results, netlist
+    plot_data = _extract_plot_data(profile, simspace)
+
+    return results, netlist, plot_data
 
 
 def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
     '''
    given a failed check, query llm for a diagnosis and repair plan
     '''
-    context = [
-        {"role": "system",
-            "content": (
-                    """You are a PySpice circuit diagnosis agent. A generated circuit script has failed one stage of a 
+    # The right biasing guidance depends on the circuit family: gain stages /
+    # differential pairs bias around a tail Vbias, whereas mirrors / references bias
+    # around the output branch's load and current. Injecting one family's rules into
+    # another's diagnosis actively misdirects the repair (a Vbias checklist is useless
+    # — and the "raise the load" intuition is inverted — for a current mirror).
+    mode = profile_for(task).mode
+    if mode == "transfer":
+        biasing_rules = (
+            "ANALOG BIASING RULES (gain stage / differential pair) — apply when diagnosing op_point failures:\n"
+            "                    - To fix a tail NMOS not in saturation: LOWER Vbias (closer to Vth), not higher — a lower Vbias reduces Vgs-Vth, making Vds > Vgs-Vth easier to satisfy\n"
+            "                    - Tail NMOS Vbias should be just above Vth (e.g. 1.0–1.2V for Vto=0.7V); high Vbias values make saturation harder, not easier\n"
+            "                    - If Vds_tail is too small, reduce tail current by lowering W, raising L, or lowering Vbias — do not raise Vbias"
+        )
+    elif mode == "static":
+        biasing_rules = (
+            "ANALOG BIASING RULES (current mirror / bias / reference) — apply when diagnosing op_point failures:\n"
+            "                    - An output/branch transistor only develops a Vds if a load pulls its drain toward a supply rail; a resistor from the output node to ground leaves Vds≈0 and pins the node at 0V — connect the load from Vdd to the output instead\n"
+            "                    - For a low-side NMOS mirror with a Vdd-referenced load, Vout = Vdd − I·Rload; choose Rload < (Vdd − Vov)/I so Vout stays above Vov (Vov = Vgs − Vth). INCREASING such a Vdd-side Rload LOWERS Vout — to raise Vout, DECREASE Rload or reduce the mirror current (smaller W, larger L, or larger reference resistor)\n"
+            "                    - The diode-connected reference device is self-biased and inherently in saturation; direct the fix at the output branch's Vds, not the reference gate voltage"
+        )
+    else:
+        biasing_rules = (
+            "ANALOG BIASING RULES — apply when diagnosing op_point failures:\n"
+            "                    - A MOSFET saturates when Vds > Vgs − Vth (NMOS) / Vsd > Vsg − |Vth| (PMOS); if Vds≈0 the drain has no path to develop voltage — verify the drain reaches a supply rail through a load rather than tying directly to its source or ground"
+        )
+
+    context = f"""You are a PySpice circuit diagnosis agent. A generated circuit script has failed one stage of a
                     five-stage validation pipeline. Your job is to identify the root cause and produce a precise, actionable
                     repair directive for the code generator.
 
@@ -605,26 +760,24 @@ def diagnose(task: dict, script: str, failed_check: CheckResult) -> str:
                     - Be formatted as a short numbered list
                     - NOT rewrite or reproduce the full script
 
-                    ANALOG BIASING RULES — apply these when diagnosing op_point failures:
-                    - To fix a tail NMOS not in saturation: LOWER Vbias (closer to Vth), not higher — a lower Vbias reduces Vgs-Vth, making Vds > Vgs-Vth easier to satisfy
-                    - Tail NMOS Vbias should be just above Vth (e.g. 1.0–1.2V for Vto=0.7V); high Vbias values make saturation harder, not easier
-                    - If Vds_tail is too small, reduce tail current by lowering W, raising L, or lowering Vbias — do not raise Vbias
-                    - NMOS model threshold is Vto=0.7 unless specified otherwise; do not assume Vth=0.5
+                    {biasing_rules}
+                    - NMOS model threshold is Vto=0.7 unless the script specifies otherwise; do not assume Vth=0.5
                     - Do not suggest adding simulation, import, or operating point code to the script — the validator runs its own simulations
 
                     Only suggest fixes you are certain about. Do NOT guess at or invent PySpice API
                     signatures, keyword-argument names, or method names; a confidently wrong API fix
                     gets stored as fact and makes the next attempt worse. """
-            )
-        },
+
+    context = [
+        {"role": "system", "content": context},
         {"role": "user", "content": f"*Failed Task* (type: {task['circuit_type']})\n {task['name']}: {task['description']}"},
         {"role": "user", "content": f"*Failing Script*:\n{script}"},
         {"role": "user", "content": f"*Failed Check*: {failed_check.stage}\n Summary: {failed_check.message}Details:\n {failed_check.details}" }
     ]
     
-    completion = ollama.chat(model="qwen3.5:9b", messages=context)
-    text = completion.message.content
+    text = llm.chat(context)
     return text
+
 
 
 def holistic_review(task: dict, script: str) -> str:
@@ -676,8 +829,7 @@ def holistic_review(task: dict, script: str) -> str:
         },
     ]
     
-    completion = ollama.chat(model="qwen3.5:9b", messages=context)
-    text = completion.message.content
+    text = llm.chat(context)
     return text
 
 def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRecord:
@@ -688,7 +840,7 @@ def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRec
     '''
     record = IterationRecord(attempt = attempt, task_type = task["circuit_type"], script = script, checks = [])
 
-    record.checks, record.netlist = check_suite(script, task)
+    record.checks, record.netlist, record.plot_data = check_suite(script, task)
 
     failure = record.first_failure()
     if failure is None:
@@ -703,6 +855,5 @@ def validate_and_optimize(attempt: int, task: dict, script: str) -> IterationRec
     else:
         # at least one quantitative check failed, LLM diagnosis determines repairs to fix the failure and pass the checks
         record.repair_plan = diagnose(task, script, failure)
-
 
     return record

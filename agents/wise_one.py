@@ -1,13 +1,10 @@
-from dotenv import load_dotenv
-
 from schema import CheckResult, IterationRecord
-import ollama
 import os
 import re
 
 from pathlib import Path
 
-
+import llm
 
 SEM_FILE_PATH = Path(__file__).resolve().parent.parent / "SEM"
 
@@ -74,8 +71,9 @@ def curate(iteration: IterationRecord, task: dict) -> str:
         {"role": "user", "content": f"[Existing {task['circuit_type']}.md]\n{existing_task_notes}"}
     ]
 
-    completion = ollama.chat(model="qwen3.5:9b", messages=context)
-    text = completion.message.content
+    text = llm.chat(context)
+    
+
 
     SEM_updates = {} # filepath (str): text to add (str)
 
