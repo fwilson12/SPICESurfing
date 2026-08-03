@@ -2,10 +2,8 @@
 
 ![Python 3.11+](https://img.shields.io/badge/Python%203.11+-3776AB?logo=python&logoColor=white)
 ![ngspice](https://img.shields.io/badge/ngspice-8A2BE2)
-![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)
-![Anthropic](https://img.shields.io/badge/Anthropic-D97757?logo=anthropic&logoColor=white)
 ![Ollama](https://img.shields.io/badge/Ollama-000000?logo=ollama&logoColor=white)
-![MIT License](https://img.shields.io/badge/MIT-3DA639)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 A multi-agent system that turns natural-language circuit descriptions into validated, simulated circuits.
 
